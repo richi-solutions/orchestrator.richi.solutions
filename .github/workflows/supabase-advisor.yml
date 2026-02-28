@@ -1,0 +1,85 @@
+# Reusable workflow: Supabase Security Advisor
+# Called by project repos via security.yml
+#
+# Requires:
+#   - Org secret: SUPABASE_ACCESS_TOKEN
+#   - Repo variable: SUPABASE_PROJECT_REF
+
+name: Supabase Security Advisor
+
+on:
+  workflow_call:
+    inputs:
+      project-ref:
+        description: "Supabase project reference ID"
+        required: true
+        type: string
+
+jobs:
+  advisor:
+    name: Supabase Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Supabase Security Advisor
+        id: advisor
+        run: |
+          # Fetch lint results
+          LINT=$(curl -s -f \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ACCESS_TOKEN }}" \
+            "https://api.supabase.com/v1/projects/${{ inputs.project-ref }}/advisors/lint" \
+            || echo '{"error": "Failed to fetch lint results"}')
+
+          echo "## Supabase Security Advisor Results" > /tmp/advisor-report.md
+          echo "" >> /tmp/advisor-report.md
+          echo "Project: \`${{ inputs.project-ref }}\`" >> /tmp/advisor-report.md
+          echo "" >> /tmp/advisor-report.md
+
+          # Check for critical security lints
+          CRITICAL=$(echo "$LINT" | jq -r '[.[] | select(.level == "ERROR" or .level == "WARN")] | length')
+
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "### Findings ($CRITICAL issues)" >> /tmp/advisor-report.md
+            echo "" >> /tmp/advisor-report.md
+            echo "$LINT" | jq -r '.[] | select(.level == "ERROR" or .level == "WARN") | "- **[\(.level)]** \(.title): \(.description)"' >> /tmp/advisor-report.md
+            echo "has_findings=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No security issues found." >> /tmp/advisor-report.md
+            echo "has_findings=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          cat /tmp/advisor-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create Issue for Findings
+        if: steps.advisor.outputs.has_findings == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('/tmp/advisor-report.md', 'utf8');
+
+            // Check if an open issue already exists
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'security,supabase-advisor',
+              state: 'open'
+            });
+
+            if (issues.data.length > 0) {
+              // Update existing issue
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: report + '\n\n_Updated: ' + new Date().toISOString() + '_'
+              });
+            } else {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Supabase Security Advisor: findings detected',
+                body: report,
+                labels: ['security', 'supabase-advisor']
+              });
+            }
