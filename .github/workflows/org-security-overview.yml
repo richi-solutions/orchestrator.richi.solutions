@@ -81,7 +81,7 @@ jobs:
             }
 
             body += `\n---\n`;
-            body += `_Auto-updated by [org-security-overview.yml](https://github.com/richi-solutions/security-workflows)_\n`;
+            body += `_Auto-updated by [org-security-overview.yml](https://github.com/richi-solutions/orchestrator.richi.solutions)_\n`;
 
             // Find or create the dashboard issue
             const title = 'Security Dashboard';
