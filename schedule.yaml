@@ -1,0 +1,41 @@
+jobs:
+  security-scan:
+    cron: "0 2 * * *"          # Daily 02:00 UTC
+    type: sweep
+    targets: all
+    agent: security-reviewer
+    timeout_ms: 300000
+
+  code-review:
+    cron: "0 3 * * 0"          # Weekly Sunday 03:00 UTC
+    type: sweep
+    targets: all
+    agent: code-reviewer
+    timeout_ms: 300000
+
+  docs-check:
+    cron: "0 4 * * 1"          # Weekly Monday 04:00 UTC
+    type: sweep
+    targets: all
+    agent: docs-checker
+    timeout_ms: 180000
+
+  daily-commits:
+    cron: "0 20 * * *"         # Daily 20:00 UTC
+    type: aggregate
+    agent: commit-summarizer
+    timeout_ms: 120000
+
+  commits-to-social:
+    cron: "0 21 * * *"         # Daily 21:00 UTC (1h after daily-commits)
+    type: chain
+    depends_on: daily-commits
+    agent: social-media-writer
+    timeout_ms: 120000
+
+  testuser-sync:
+    cron: "0 6 * * *"          # Daily 06:00 UTC
+    type: provision
+    targets:
+      - has_testusers: true
+    timeout_ms: 180000
