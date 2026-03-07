@@ -38,7 +38,7 @@ const discovery = new GitHubDiscoveryAdapter(github, env.GITHUB_ORG);
 
 // Instantiate handlers
 const sweepHandler = new SweepHandler(discovery, claude, agentsDir);
-const aggregateHandler = new AggregateHandler(discovery, github, claude, env.GITHUB_ORG, agentsDir);
+const aggregateHandler = new AggregateHandler(discovery, github, claude, store, env.GITHUB_ORG, agentsDir);
 const chainHandler = new ChainHandler(store, claude, agentsDir);
 const provisionHandler = new ProvisionHandler(discovery);
 
@@ -53,6 +53,18 @@ async function executeJob(jobName: string, jobDef: import('./contracts/v1/schedu
     const storeResult = await store.saveJobRun(result.data);
     if (storeResult.ok) {
       logger.info('job_completed_and_stored', { jobName, status: result.data.status, id: storeResult.data.id });
+
+      // Save to use-case-specific tables
+      if (result.data._commitMeta) {
+        const summaryContent = result.data.results.find((r) => r.output)?.output ?? result.data.summary ?? '';
+        await store.saveCommitSummary({
+          jobRunId: storeResult.data.id,
+          summaryDate: new Date().toISOString().split('T')[0],
+          content: summaryContent,
+          reposActive: result.data._commitMeta.reposActive,
+          totalCommits: result.data._commitMeta.totalCommits,
+        });
+      }
     } else {
       logger.error('job_store_failed', new Error(storeResult.error.message), { jobName });
     }

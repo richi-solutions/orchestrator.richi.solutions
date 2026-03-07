@@ -1,6 +1,6 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
-import { StorePort } from './store.port';
+import { StorePort, CommitSummaryInput } from './store.port';
 import { JobResult } from '../contracts/v1/job-result.schema';
 import { Result, success, failure } from '../lib/result';
 import { logger } from '../lib/logger';
@@ -113,6 +113,34 @@ export class SupabaseStoreAdapter implements StorePort {
     } catch (err) {
       logger.error('store_list_error', err, { traceId });
       return failure('STORE_ERROR', 'Failed to list job runs', traceId);
+    }
+  }
+
+  async saveCommitSummary(input: CommitSummaryInput): Promise<Result<{ id: string }>> {
+    const traceId = uuidv4();
+    try {
+      const { data, error } = await this.client
+        .from('commit_summaries')
+        .insert({
+          job_run_id: input.jobRunId,
+          summary_date: input.summaryDate,
+          content: input.content,
+          repos_active: input.reposActive,
+          total_commits: input.totalCommits,
+        })
+        .select('id')
+        .single();
+
+      if (error) {
+        logger.error('store_commit_summary_failed', error, { traceId });
+        return failure('STORE_ERROR', error.message, traceId);
+      }
+
+      logger.info('store_commit_summary_saved', { traceId, id: data.id });
+      return success({ id: data.id });
+    } catch (err) {
+      logger.error('store_commit_summary_error', err, { traceId });
+      return failure('STORE_ERROR', 'Failed to save commit summary', traceId);
     }
   }
 }

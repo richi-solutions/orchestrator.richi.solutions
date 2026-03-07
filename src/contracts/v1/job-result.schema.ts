@@ -17,6 +17,11 @@ export const JobResultSchema = z.object({
   targets: z.array(z.string()),
   results: z.array(TargetResultSchema),
   summary: z.string().optional(),
+  // Optional metadata for result-table storage (not persisted in job_runs)
+  _commitMeta: z.object({
+    reposActive: z.array(z.string()),
+    totalCommits: z.number(),
+  }).optional(),
 });
 
 export type TargetResult = z.infer<typeof TargetResultSchema>;

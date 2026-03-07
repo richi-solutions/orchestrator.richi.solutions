@@ -6,6 +6,7 @@ import { JobResult } from '../../contracts/v1/job-result.schema';
 import { DiscoveryPort } from '../../discovery/discovery.port';
 import { GitHubPort, CommitInfo } from '../../github/github.port';
 import { ClaudePort } from '../../claude/claude.port';
+import { StorePort } from '../../store/store.port';
 import { Result, success, failure } from '../../lib/result';
 import { logger } from '../../lib/logger';
 
@@ -14,6 +15,7 @@ export class AggregateHandler {
     private discovery: DiscoveryPort,
     private github: GitHubPort,
     private claude: ClaudePort,
+    private store: StorePort,
     private org: string,
     private agentsDir: string,
   ) {}
@@ -51,6 +53,7 @@ export class AggregateHandler {
         targets: reposResult.data.map((r) => r.name),
         results: [{ target: 'all', status: 'success', output: 'No commits in the last 24h.' }],
         summary: 'No commits in the last 24 hours.',
+        _commitMeta: { reposActive: [], totalCommits: 0 },
       });
     }
 
@@ -61,6 +64,8 @@ export class AggregateHandler {
       existing.push(c);
       commitsByRepo.set(c.repo, existing);
     }
+
+    const reposActive = [...commitsByRepo.keys()];
 
     let commitText = '';
     for (const [repo, commits] of commitsByRepo) {
@@ -99,6 +104,7 @@ export class AggregateHandler {
         targets: reposResult.data.map((r) => r.name),
         results: [{ target: 'all', status: 'failure', error: claudeResult.error.message }],
         summary: `Collected ${allCommits.length} commits but summary generation failed.`,
+        _commitMeta: { reposActive: reposActive, totalCommits: allCommits.length },
       });
     }
 
@@ -112,6 +118,7 @@ export class AggregateHandler {
       targets: reposResult.data.map((r) => r.name),
       results: [{ target: 'all', status: 'success', output: claudeResult.data.content }],
       summary: claudeResult.data.content.substring(0, 500),
+      _commitMeta: { reposActive: reposActive, totalCommits: allCommits.length },
     });
   }
 }
