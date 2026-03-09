@@ -1,5 +1,5 @@
 # Security scanning caller workflow
-# Distributed via .claude/security/ to .github/workflows/security.yml
+# Distributed via .claude/sync/ to .github/workflows/security.yml
 #
 # Calls reusable workflows from richi-solutions/orchestrator.richi.solutions
 
