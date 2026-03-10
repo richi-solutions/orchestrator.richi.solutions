@@ -39,7 +39,7 @@ jobs:
             exit 1
           fi
 
-          REPOS=$(gh api "/users/${ORG_NAME}/repos?per_page=100&type=owner" \
+          REPOS=$(gh api "user/repos?per_page=100&affiliation=owner" \
             --paginate \
             --jq '[.[] | select(.archived == false)
                        | select(.name | endswith(".richi.solutions"))
@@ -122,12 +122,13 @@ jobs:
               -m "Distributed standardized configs from .claude/sync/ mirror layout." \
               -m "Automated by sync-config.yml"
 
-            if git push origin "$DEFAULT_BRANCH"; then
+            if PUSH_OUTPUT=$(git push origin "$DEFAULT_BRANCH" 2>&1); then
               echo "Successfully synced $REPO_NAME"
               SUCCESS=$((SUCCESS + 1))
               DETAILS="${DETAILS}| ${REPO_NAME} | Updated |\n"
             else
               echo "::warning::Failed to push to $REPO_NAME"
+              echo "Push error: $PUSH_OUTPUT"
               FAILED=$((FAILED + 1))
               DETAILS="${DETAILS}| ${REPO_NAME} | Push failed |\n"
             fi
