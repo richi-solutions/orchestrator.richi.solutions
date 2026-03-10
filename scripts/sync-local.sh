@@ -14,6 +14,12 @@ ORCHESTRATOR_DIR="$(dirname "$SCRIPT_DIR")"
 PARENT_DIR="$(dirname "$ORCHESTRATOR_DIR")"
 SOURCE="${ORCHESTRATOR_DIR}/.claude"
 
+# Shared directories to sync
+SHARED_DIRS="agents rules ref skills sync"
+
+# Project-specific files to preserve (never overwrite)
+# CLAUDE.md, CLAUDE.local.md, settings.local.json, .mcp.json, reviews/
+
 if [ ! -d "$SOURCE" ]; then
   echo "Error: Orchestrator .claude/ not found at $SOURCE"
   exit 1
@@ -45,16 +51,25 @@ for repo_dir in "$PARENT_DIR"/*.richi.solutions; do
   # Ensure .claude/ exists
   mkdir -p "$repo_dir/.claude"
 
-  # Sync shared content (same excludes as the workflow)
-  rsync -a --delete \
-    --exclude='CLAUDE.md' \
-    --exclude='CLAUDE.local.md' \
-    --exclude='settings.local.json' \
-    --exclude='.mcp.json' \
-    --exclude='reviews/' \
-    "$SOURCE/" "$repo_dir/.claude/"
+  # Sync shared directories (delete old content, copy fresh)
+  for dir in $SHARED_DIRS; do
+    if [ -d "$SOURCE/$dir" ]; then
+      rm -rf "$repo_dir/.claude/$dir"
+      cp -r "$SOURCE/$dir" "$repo_dir/.claude/$dir"
+    fi
+  done
 
-  # Copy config files to repo root
+  # Sync settings.json
+  if [ -f "$SOURCE/settings.json" ]; then
+    cp "$SOURCE/settings.json" "$repo_dir/.claude/settings.json"
+  fi
+
+  # Remove old security/ directory if it still exists
+  if [ -d "$repo_dir/.claude/security" ]; then
+    rm -rf "$repo_dir/.claude/security"
+  fi
+
+  # Copy config files from sync/ to repo root
   if [ -d "$repo_dir/.claude/sync" ]; then
     cp -r "$repo_dir/.claude/sync/." "$repo_dir/"
   fi
