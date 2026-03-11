@@ -5,6 +5,7 @@ import { logger } from '../lib/logger';
 export interface JobTriggerResult {
   status: string;
   error?: string;
+  storeError?: string;
 }
 
 export class Scheduler {

@@ -36,7 +36,7 @@ export function createTriggerRouter(scheduler: Scheduler): Router {
       const httpStatus = result.status === 'failure' ? 502 : 200;
       res.status(httpStatus).json({
         ok: result.status !== 'failure',
-        data: { jobName, status: result.status, error: result.error },
+        data: { jobName, status: result.status, error: result.error, storeError: result.storeError },
       });
     } catch (err) {
       res.status(504).json({

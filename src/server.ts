@@ -49,6 +49,7 @@ const executor = new Executor(sweepHandler, aggregateHandler, chainHandler, prov
 export interface JobExecutionResult {
   status: string;
   error?: string;
+  storeError?: string;
 }
 
 // Job execution pipeline — returns status so trigger endpoint can report it
@@ -92,6 +93,7 @@ async function executeJob(jobName: string, jobDef: import('./contracts/v1/schedu
       }
     } else {
       logger.error('job_store_failed', new Error(storeResult.error.message), { jobName });
+      return { status: result.data.status, storeError: storeResult.error.message };
     }
     return { status: result.data.status };
   } else {
@@ -113,7 +115,11 @@ async function executeJob(jobName: string, jobDef: import('./contracts/v1/schedu
       logger.error('job_failure_store_failed', new Error(storeResult.error.message), { jobName });
     }
     logger.error('job_execution_failed', new Error(result.error.message), { jobName, traceId: result.traceId });
-    return { status: 'failure', error: result.error.message };
+    return {
+      status: 'failure',
+      error: result.error.message,
+      storeError: storeResult.ok ? undefined : storeResult.error.message,
+    };
   }
 }
 
