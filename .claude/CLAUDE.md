@@ -2,7 +2,7 @@
 
 **"Lean Today. Limitless Tomorrow."**
 
-This project follows the **Consumer-Pro Knowledge Base v2.0**.
+This project follows the **Consumer-Pro Knowledge Base v3.2**.
 Full reference: `rules/core/consumer-pro-kb.md`
 
 ---
@@ -32,14 +32,15 @@ Higher authority overrides lower. If two rules conflict, the higher one wins.
 
 ---
 
-## Tech Stack (Lovable / React Projects)
+## Tech Stack
 
 - **Frontend:** React + Vite + TypeScript + Tailwind CSS + shadcn/ui
 - **Routing:** React Router (SPA pattern with `pages/` folder)
-- **Backend:** Supabase (Auth, Database, Edge Functions)
+- **Backend:** Supabase Cloud (self-provisioned: Auth, Database, Edge Functions)
+- **Hosting:** Vercel
 - **Validation:** Zod
 - **Testing:** Vitest (unit), Playwright (E2E)
-- **CI/CD:** GitHub Actions
+- **CI/CD:** GitHub Actions + Vercel Git Integration
 
 ---
 
@@ -73,20 +74,20 @@ supabase/
 ## Branch & Deployment Strategy
 
 ```
-feature/*  →  PR  →  GitHub Actions (lint, typecheck, test, E2E)
+feature/*  →  PR  →  GitHub Actions (lint, typecheck, test)
                           ↓
-main       →  Lovable Preview  (auto-sync = Abnahme/Staging)
+             Vercel Preview Deployment (auto on PR)
                           ↓
-Lovable "Publish"  →  Production  (manual gate)
+main       →  Vercel Production Deployment (auto on merge)
 ```
 
 ---
 
 ## Development Workflow
 
-- **Planning:** Lovable (Planning Mode only)
+- **Prototyping (optional):** Lovable → Export → `/migrate-from-lovable`
 - **Implementation:** Claude Code (this environment)
-- **Pull before working** if Lovable editor was used
+- **Hosting:** Vercel (frontend) + Supabase Cloud (backend)
 - **feature branches** for all changes — never commit directly to main
 
 ---
@@ -110,7 +111,7 @@ quality checklist defined in that guide before commit.
 
 ## Deployment Gate
 
-Before any production publish, verify `rules/runtime-contract.md` checklist:
+Before any production deployment, verify `rules/runtime-contract.md` checklist:
 
 - [ ] Contracts validated (Zod schemas on all API boundaries)
 - [ ] Error envelope implemented
@@ -121,3 +122,5 @@ Before any production publish, verify `rules/runtime-contract.md` checklist:
 - [ ] Secrets secure (no keys in repo)
 - [ ] HTTPS enabled
 - [ ] RLS enabled on all user tables
+- [ ] Vercel project linked and configured
+- [ ] Supabase project linked (own Supabase Cloud project)

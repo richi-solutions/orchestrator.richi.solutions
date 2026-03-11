@@ -4,7 +4,7 @@
 Version: 1.0
 Status: ACTIVE
 Execution Mode: AGENT-EXECUTABLE
-Agent: Lovable AI (planning) / Claude Code (implementation)
+Agent: Claude Code (implementation) / Lovable (optional prototyping)
 Authority: GROWTH-INFRASTRUCTURE
 
 ---

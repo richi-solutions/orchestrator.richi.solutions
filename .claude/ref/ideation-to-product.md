@@ -4,7 +4,7 @@
 Version: 1.0
 Status: ACTIVE
 Execution Mode: AGENT-EXECUTABLE
-Agent: Lovable AI (planning) / Claude Code (implementation)
+Agent: Claude Code (implementation) / Lovable (optional prototyping)
 
 ---
 
@@ -21,7 +21,7 @@ The goal is to eliminate ambiguity and ensure that every idea can be converted i
 # 1 — Execution Role
 
 Agent Role: Product Architect Agent
-(This role is assumed by the Lovable AI agent when the user submits an idea for transformation into a product specification.)
+(This role is assumed by the AI agent — Claude Code or other — when the user submits an idea for transformation into a product specification.)
 
 The agent must:
 

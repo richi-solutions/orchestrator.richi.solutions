@@ -4,7 +4,7 @@
 Version: 1.0
 Status: ACTIVE
 Execution Mode: AGENT-EXECUTABLE
-Agent: Lovable AI (planning) / Claude Code (implementation)
+Agent: Claude Code (implementation) / Lovable (optional prototyping)
 Authority: GROWTH-INFRASTRUCTURE
 
 ---
@@ -352,7 +352,7 @@ Optimization Agent uses data to improve funnel.
 
 # 11 — Optimization Agent Authority
 
-The Optimization Agent role is executed by the Lovable AI agent on user request. The agent suggests and implements funnel optimizations when instructed by the user.
+The Optimization Agent role is executed by the AI agent (Claude Code) on user request. The agent suggests and implements funnel optimizations when instructed by the user.
 
 Optimization Agent may:
 

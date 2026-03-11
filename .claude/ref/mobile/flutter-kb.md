@@ -4,7 +4,7 @@
 
 **Version:** 2.0
 
-**Purpose:** Define how to build and maintain a Flutter mobile client (iOS + Android from one codebase) that cleanly integrates with a Consumer‑Pro compliant backend/web app running in Lovable Cloud (JavaScript/TypeScript + Supabase).
+**Purpose:** Define how to build and maintain a Flutter mobile client (iOS + Android from one codebase) that cleanly integrates with a Consumer‑Pro compliant backend/web app running on Vercel + Supabase Cloud (React/TypeScript).
 
 **Audience:** Solo builders and small teams.
 
@@ -474,7 +474,7 @@ Provide a Settings entry (e.g., Profile → Privacy/Ads):
 
 ## 15 — Multi‑Repo Compatibility Rules (Web + Backend + Mobile)
 
-- Web/Backend (Lovable Cloud + Supabase) may live in a separate repo.
+- Web/Backend (Vercel + Supabase Cloud) may live in a separate repo.
 - Mobile (Flutter) may live in a separate repo.
 - Compatibility is maintained via stable contracts and shared invariants:
   - contract discipline

@@ -38,7 +38,7 @@ This document describes the architecture for generating dynamic cinematic conten
 │              Edge Function: generate-hero-video               │
 │                                                              │
 │  1. Auth check (admin role required)                         │
-│  2. Generate reference frame via Lovable AI Gateway          │
+│  2. Generate reference frame via Google Gemini API            │
 │  3. Submit frame + prompt to Google Veo API                  │
 │  4. Poll for completion (up to 5 min)                        │
 │  5. Download + upload to Storage                             │
@@ -47,8 +47,8 @@ This document describes the architecture for generating dynamic cinematic conten
          │                     │
          ▼                     ▼
 ┌─────────────────┐   ┌─────────────────────────┐
-│  Lovable AI     │   │  Google Veo API          │
-│  Gateway        │   │  (Vertex AI)             │
+│  Google Gemini  │   │  Google Veo API          │
+│  API (direct)   │   │  (Vertex AI)             │
 │                 │   │                          │
 │  Model:         │   │  Model:                  │
 │  gemini-3-pro-  │   │  veo-3.1-generate-       │
@@ -108,7 +108,7 @@ This document describes the architecture for generating dynamic cinematic conten
 ### Responsibilities
 
 1. **Authentication** — Validates admin role via JWT + `user_roles` table
-2. **Image generation** — Calls Lovable AI Gateway to produce a 16:9 reference frame
+2. **Image generation** — Calls Google Gemini API to produce a 16:9 reference frame
 3. **Video generation** — Submits frame to Veo API with first+last frame technique
 4. **Polling** — Long-polls operation status (10s intervals, 5min timeout)
 5. **Storage** — Downloads result video and uploads to cloud storage bucket
@@ -192,7 +192,7 @@ Both fields are optional:
 ## Generation Flow
 
 ```
-Client                Edge Function           Lovable AI          Veo API           Storage
+Client                Edge Function           Gemini API          Veo API           Storage
   │                        │                      │                  │                 │
   │  POST /generate-hero   │                      │                  │                 │
   │───────────────────────>│                      │                  │                 │
@@ -234,7 +234,7 @@ Client                Edge Function           Lovable AI          Veo API       
 | Step | Typical Duration |
 |------|-----------------|
 | Auth check | < 500ms |
-| Image generation (Lovable AI) | 15–20s |
+| Image generation (Gemini API) | 15–20s |
 | Veo submission | < 2s |
 | Veo generation + polling | 30–120s |
 | Video download | 2–5s |
@@ -388,7 +388,7 @@ const { data } = await supabase
 
 | Secret | Purpose | Provisioning |
 |--------|---------|-------------|
-| `LOVABLE_API_KEY` | Lovable AI Gateway access (image generation) | Auto-provisioned by Lovable Cloud |
+| `GOOGLE_GEMINI_API_KEY` | Google Gemini API access (image generation) | Manually added via Secrets manager |
 | `GOOGLE_VEO_API_KEY` | Google Generative Language API (Veo video) | Manually added via Secrets manager |
 | `SUPABASE_URL` | Storage + auth | Auto-provisioned |
 | `SUPABASE_SERVICE_ROLE_KEY` | Storage upload (bypasses RLS) | Auto-provisioned |
@@ -398,7 +398,7 @@ const { data } = await supabase
 
 | Service | Endpoint |
 |---------|----------|
-| Lovable AI Gateway | `https://ai.gateway.lovable.dev/v1/chat/completions` |
+| Google Gemini API | `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent` |
 | Veo (generate) | `https://generativelanguage.googleapis.com/v1beta/models/veo-3.1-generate-preview:predictLongRunning` |
 | Veo (poll) | `https://generativelanguage.googleapis.com/v1beta/<operation-name>` |
 | Veo (download) | URI returned in operation response |
@@ -462,7 +462,7 @@ const { data } = await supabase
 
 ### `CONFIG_ERROR`
 
-**Cause:** Missing `GOOGLE_VEO_API_KEY` or `LOVABLE_API_KEY` secret.
+**Cause:** Missing `GOOGLE_VEO_API_KEY` or `GOOGLE_GEMINI_API_KEY` secret.
 
 **Fix:** Add the missing secret via the Secrets manager in project settings.
 
@@ -547,7 +547,7 @@ Enhanced prompt (context=logo):
 
 ### Model
 
-Uses `google/gemini-3-pro-image-preview` via the Lovable AI Gateway — the same model used for hero video reference frames. Selected for its superior aspect ratio control.
+Uses `gemini-2.0-flash-exp` (or latest Gemini model with image generation) via the Google Gemini API directly — the same model used for hero video reference frames. Selected for its superior aspect ratio control.
 
 ### Frontend Hook: `useGenerateImage`
 
@@ -580,6 +580,6 @@ A reusable popover component (`src/components/ui/ai-image-prompt.tsx`) providing
 
 The `generate-image` function uses the same model and prompt enhancement technique as `generate-hero-video`. The hero video pipeline retains its own inline image generation for simplicity, but both functions share the identical approach:
 
-1. Same model: `google/gemini-3-pro-image-preview`
-2. Same gateway: Lovable AI
+1. Same model: `gemini-2.0-flash-exp` (or latest Gemini image generation model)
+2. Same API: Google Gemini API (direct)
 3. Same prompt pattern: explicit pixel dimensions + aspect ratio + "fill entire frame"

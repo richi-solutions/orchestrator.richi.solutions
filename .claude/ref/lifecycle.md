@@ -4,7 +4,7 @@
 Version: 1.0
 Status: ACTIVE
 Execution Mode: AGENT-EXECUTABLE
-Agent: Lovable AI (planning) / Claude Code (implementation)
+Agent: Claude Code (implementation) / Lovable (optional prototyping)
 
 ---
 
@@ -189,7 +189,7 @@ live_app_instance
 
 Deployment Targets:
 
-* lovable.dev
+* React + Vite + Vercel + Supabase Cloud
 * custom domain (optional)
 * mobile deployment (optional)
 
@@ -341,7 +341,7 @@ product classified as platform asset
 
 # 3 — Agent Execution Order
 
-The sequential execution is controlled by the user. Each phase is triggered by the user as an instruction to the Lovable AI agent. The agent does not advance phases autonomously.
+The sequential execution is controlled by the user. Each phase is triggered by the user as an instruction to the AI agent (Claude Code). The agent does not advance phases autonomously.
 
 Strict execution order:
 
@@ -355,7 +355,7 @@ Idea Intake Agent
 → Platform Integration Agent (optional)
 ```
 
-All agent roles are executed by the Lovable AI agent on user request.
+All agent roles are executed by the AI agent (Claude Code) on user request.
 
 Agents must execute sequentially.
 

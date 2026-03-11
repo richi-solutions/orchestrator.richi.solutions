@@ -1,7 +1,7 @@
 # Legal Pages Template & Prompt
 
 > **Purpose:** This document serves as a complete template and prompt for every project to create legally compliant imprint, terms of service, and privacy policy.
-> **Audience:** Developers / Lovable AI prompts
+> **Audience:** Developers / AI agent prompts
 > **Last updated:** February 2026
 > **Regulatory status:** GDPR, EU AI Act (Regulation 2024/1689), DDG, MStV, TDDDG, HGB, AO, BGB
 

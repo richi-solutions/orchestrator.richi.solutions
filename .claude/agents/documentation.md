@@ -57,7 +57,7 @@ cat package.json 2>/dev/null
 ```
 
 Classify the project:
-- **Web App** — Vite + React + TypeScript + Supabase
+- **Web App** — React + Vite + TypeScript + Supabase + Vercel
 - **Backend Service** — Node.js / Deno / Express
 - **No-Code Workflow** — n8n
 - **Shared Package** — library consumed by other repos
@@ -68,14 +68,14 @@ Classify the project:
 
 Before creating or modifying anything, catalog what exists:
 
-- Does README.md exist? Is it a Lovable placeholder or substantive?
+- Does README.md exist? Is it an auto-generated placeholder or substantive?
 - Does docs/ directory exist? What's in it?
 - Are there JSDoc/TypeDoc comments on exported functions?
 - Are there @fileoverview headers on modules?
 - Are there ADRs in docs/adr/?
 - Is there a CONTRIBUTING.md?
 
-**Rule:** Never overwrite substantive existing docs. Update and extend them. Only replace Lovable placeholder READMEs (identifiable by generic "Welcome to your Lovable project" text or empty structure).
+**Rule:** Never overwrite substantive existing docs. Update and extend them. Only replace auto-generated placeholder READMEs (identifiable by generic "Welcome to your project" text, Lovable boilerplate, or empty structure).
 
 ### 3. Generate/Update README.md
 
@@ -85,7 +85,7 @@ Use the README template below, adapted by project type.
 
 | Project Type | Include | Exclude |
 |---|---|---|
-| Web App (Vite+React) | Full template with all sections | — |
+| Web App (React + Vite) | Full template with all sections | — |
 | Backend Service | "API Endpoints" summary instead of "UI Features" | Frontend-specific sections |
 | No-Code (n8n) | Workflow list, trigger descriptions, env vars | Build/test sections |
 | Shared Package | API surface, installation, usage examples | Deployment, UI sections |

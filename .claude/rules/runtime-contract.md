@@ -40,9 +40,13 @@ Block deployment until all pass:
 - [ ] Secrets secure (no keys in repo or client)
 - [ ] HTTPS enabled
 - [ ] RLS enabled on all user tables
+- [ ] Vercel project linked and environment variables configured
+- [ ] Supabase Cloud project linked (own project, not managed by third party)
+- [ ] `vite build` passes without errors
 
 ---
 
 ## Post-Deployment (first 24h)
 
 Verify: analytics ingest, signup/login, funnel events, error rates.
+Check Vercel deployment logs and Supabase Edge Function logs for errors.

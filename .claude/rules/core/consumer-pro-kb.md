@@ -1,8 +1,8 @@
-# 🌍 Richi AI — Consumer-Pro Knowledge Base v3.0
+# 🌍 Richi AI — Consumer-Pro Knowledge Base v3.2
 
 **"Lean Today. Limitless Tomorrow."**
 
-**Version 2.0** — Framework-agnostic patterns for scalable consumer applications
+**Version 3.2** — React + Vite + Vercel + Supabase Cloud patterns for scalable consumer applications
 
 ---
 
@@ -32,6 +32,7 @@
 20 — SEO Standards
 21 — Summary
 22 — Docs Execution System (Core / Generation / Growth / Runtime)
+23 — Claude Code Integration & Deployment
 ```
 
 ---
@@ -51,16 +52,17 @@ It enables small teams or solo founders to build consumer apps that scale gracef
 - Support **multi-platform development** (Web, Mobile, Backend)
 - Enable **internationalization** from day one
 
-### What's New in v2.0
+### What's New in v3.2
 
-| Addition | Rationale |
-|----------|-----------|
-| Multi-Platform Architecture | Real projects need Web + Mobile + Backend |
-| i18n Standards | Internationalization is not optional for consumer apps |
-| Documentation Standards | Consistent language and format across all docs |
-| Edge Function Patterns | Standardized serverless backend patterns |
-| SEO Standards | Critical for consumer app discoverability |
-| Offline Mode Decision Tree | Pragmatic instead of dogmatic approach |
+| Change | Rationale |
+|--------|-----------|
+| **Vercel** as frontend hosting | Production-grade deployment with Preview/Production environments |
+| **Supabase Cloud** (self-provisioned) | Own projects at supabase.com instead of third-party managed |
+| **Lovable** demoted to optional prototyping | No longer the deployment/hosting platform |
+| `/migrate-from-lovable` skill | Automated migration path for Lovable prototypes |
+| Deployment via Vercel Git Integration | Auto-deploy on PR (Preview) and merge to main (Production) |
+
+Previous additions (v2.0): Multi-Platform Architecture, i18n Standards, Documentation Standards, Edge Function Patterns, SEO Standards, Offline Mode Decision Tree.
 
 ---
 
@@ -87,8 +89,7 @@ It enables small teams or solo founders to build consumer apps that scale gracef
 
 ```
 src/
-  pages/             # routes/pages (React Router pattern)
-  # OR: app/         # routes/pages (Next.js App Router pattern)
+  pages/             # routes/pages (React Router)
   components/        # presentation only
   features/
     [feature-a]/     # e.g., products, articles, users
@@ -107,18 +108,9 @@ src/
     v1/
 ```
 
-### Routing Patterns
+### Routing Pattern (React Router SPA)
 
-Choose the routing pattern based on your framework:
-
-| Framework | Folder | Router Type | Best For |
-|-----------|--------|-------------|----------|
-| **React + Vite** | `pages/` | React Router (central config) | SPAs, traditional React apps |
-| **Next.js (App Router)** | `app/` | File-based routing | SSR, ISR, SEO-heavy apps |
-| **Next.js (Pages Router)** | `pages/` | File-based routing | Simpler Next.js apps |
-| **Remix** | `routes/` | File-based routing | Full-stack React apps |
-
-#### React Router Pattern (SPA)
+**Default:** React Router with central route configuration. Deployed on Vercel as SPA.
 
 ```typescript
 // src/App.tsx - Central route configuration
@@ -129,35 +121,12 @@ const router = createBrowserRouter([
 ]);
 ```
 
-**When to use:**
-- Single Page Applications (SPAs) deployed on static hosts
-- Apps built with Vite, Create React App
-- When you need full control over route transitions
-- Client-side rendering only
-
-#### Next.js App Router Pattern (SSR)
-
-```
-app/
-  layout.tsx        # Root layout
-  page.tsx          # Homepage
-  explore/
-    page.tsx        # /explore route
-  profile/
-    page.tsx        # /profile route
-  (auth)/           # Route group (no URL segment)
-    login/
-      page.tsx
-```
-
-**When to use:**
-- Server-side rendering (SSR) or Static Site Generation (SSG)
-- SEO-critical applications
-- When you need React Server Components
-- API routes colocated with frontend
-
-> **Recommendation:** For Lovable.dev projects, use `pages/` with React Router.
-> For production apps requiring SSR/SEO, consider migrating to Next.js with `app/`.
+**Why React + Vite:**
+- Fast development experience (HMR, instant builds)
+- Simple SPA deployment on Vercel
+- Mature ecosystem (React Router, TanStack Query, shadcn/ui)
+- Compatible with rapid prototyping tools (e.g. Lovable) — no framework migration needed
+- Backend logic via Supabase Edge Functions (no SSR needed)
 
 ### Folder Blueprint (Edge Functions)
 
@@ -532,7 +501,7 @@ test('user can complete main feature flow', async ({ page }) => {
 
 ## 09 — CI/CD-Lite
 
-Use **Lovable.dev** for auto-deployment of edge + frontend.
+Use **Vercel** for frontend deployment (Git Integration). Supabase Edge Functions deploy via `supabase functions deploy`.
 
 ### Pipeline Structure
 
@@ -551,22 +520,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bun run lint
-      - run: bun run typecheck
-      - run: bun run build
-      - run: bun run test
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run test
 
   e2e:
     runs-on: ubuntu-latest
     needs: quality
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install --frozen-lockfile
-      - run: bunx playwright install --with-deps chromium
-      - run: bun run test:e2e
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
 ```
 
 ### CI/CD Phase Gates
@@ -581,7 +556,7 @@ creates noise (failing workflows) without value. Follow this phasing:
 | **Security scanning (gitleaks, semgrep, osv)** | Phase 1 (Launch) | Always — distributed via dotclaude subtree |
 | **CodeQL** | Phase 3 (1k+ DAU) | Requires GitHub Advanced Security for private repos |
 | **Lighthouse CI** | Phase 3 (1k+ DAU) | When performance budgets matter |
-| **Deploy workflow** | Never (Lovable) | Lovable Cloud handles deployment — a separate deploy workflow is redundant |
+| **Deploy workflow** | Phase 1 (Launch) | Vercel Git Integration auto-deploys on push to `main` — no custom workflow needed |
 
 **IMPORTANT:** Do NOT add Phase 3 workflows to new projects. They will fail
 and provide no value at early stages. The CI workflow template above is
@@ -605,9 +580,8 @@ the dotclaude subtree (`/update-dotclaude`).
 
 ### Branch Mapping
 
-- `feature/*` → PR → GitHub Actions (lint, typecheck, test, E2E)
-- `main` → Lovable Preview (auto-sync = Abnahme/Staging)
-- Lovable "Publish" → Production (manual gate)
+- `feature/*` → PR → GitHub Actions (lint, typecheck, test, E2E) + Vercel Preview Deployment
+- `main` → Vercel Production Deployment (auto-deploy on merge)
 
 ### Conventional Commits
 
@@ -648,8 +622,8 @@ Store under `/docs/runbooks/rollback.md`:
 - User reports of failures
 
 ## Steps
-1. Identify failing deployment in Lovable dashboard
-2. Click "Rollback to previous version"
+1. Identify failing deployment in Vercel dashboard
+2. Click "Redeploy" on the last working deployment (Instant Rollback)
 3. Verify metrics return to normal
 4. Create incident report
 ```
@@ -885,7 +859,7 @@ const retryConfig = {
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    Shared Backend                    │
-│         (Supabase/Lovable Cloud Project)            │
+│         (Supabase Cloud — self-provisioned)         │
 │                                                      │
 │  ┌─────────────────────────────────────────────────┐ │
 │  │  Edge Functions  │  Database  │  Auth  │ Storage│ │
@@ -898,7 +872,7 @@ const retryConfig = {
 ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
 │  Web App    │  │ Mobile App  │  │ Admin App   │
 │  (React)    │  │ (Flutter)   │  │ (React)     │
-│             │  │             │  │             │
+│  Vercel     │  │             │  │  Vercel     │
 │ Repository: │  │ Repository: │  │ Repository: │
 │ project-web │  │ project-app │  │ project-adm │
 └─────────────┘  └─────────────┘  └─────────────┘
@@ -921,7 +895,7 @@ const retryConfig = {
 
 | Platform | Architecture | Rationale |
 |----------|--------------|-----------|
-| **Web (React)** | Hexagonal (Ports & Adapters) | Full testability, backend swap |
+| **Web (React + Vite)** | Hexagonal (Ports & Adapters) | Full testability, backend swap |
 | **Mobile (Flutter)** | Clean Architecture (MVVM) | Native patterns, widget lifecycle |
 | **Backend (Edge)** | Layered + Result Type | Simplicity, stateless |
 
@@ -1512,20 +1486,20 @@ const SITEMAP_CONFIG = {
 
 ### "Lean Today. Limitless Tomorrow."
 
-The **Consumer-Pro Knowledge Base v2.0** is not a downgrade — it's a **strategic staging layer**.
+The **Consumer-Pro Knowledge Base v3.2** is a **strategic staging layer**.
 It allows you to build a consumer-grade product with production discipline, then evolve it into a SaaS-grade system when scale demands.
 
-### What's Different in v2.0
+### What's Different in v3.2 (vs earlier versions)
 
-| Aspect | v1.0 | v2.0 |
-|--------|------|------|
+| Aspect | Before (v1-v2) | Now (v3.2) |
+|--------|----------------|------------|
+| **Hosting** | Lovable (Preview + Publish) | Vercel (Preview on PR, Production on main) |
+| **Supabase** | Lovable-managed | Self-provisioned Supabase Cloud |
+| **Framework** | Vite + React | Vite + React (unchanged, Vercel deploys SPA) |
 | **Offline Mode** | Dogmatic ("always") | Pragmatic (decision tree) |
 | **Platforms** | Web only | Web + Mobile + Backend |
-| **i18n** | Not covered | Full standards |
-| **Documentation** | Implicit | Explicit language policy |
-| **Edge Functions** | Ad-hoc | Standardized patterns |
 | **SEO** | Not covered | Complete framework |
-| **Enforcement** | Manual | CI/CD integrated |
+| **Distribution** | Manual KB upload | Automatic via sync-dotclaude.yml |
 
 ### Quick Reference
 
@@ -1533,9 +1507,10 @@ It allows you to build a consumer-grade product with production discipline, then
 |------|---------|
 | API contracts | 03 — Contracts & DTOs |
 | Should I implement offline? | 05 — PWA Decision Tree |
+| Deployment & Vercel setup | 23 — Claude Code Integration & Deployment |
+| Migrate from Lovable | 23.1 — Lovable's Role (Optional Prototyping) |
 | Multi-platform strategy | 16 — Multi-Platform Architecture |
 | Translation setup | 17 — i18n Standards |
-| Code comment language | 18 — Documentation Standards |
 | Edge function structure | 19 — Edge Function Patterns |
 | SEO implementation | 20 — SEO Standards |
 | When to migrate to SaaS | 11 — Migration Playbook |
@@ -1543,9 +1518,9 @@ It allows you to build a consumer-grade product with production discipline, then
 ### Philosophy
 
 > **Richi AI** defines the philosophy of wisdom and structure.
-> **Consumer-Pro KB v2.0** operationalizes it for creators who build small but think big.
-> **Lovable.dev** ensures it all executes — calmly, beautifully, automatically.
-> **Cursor** builds the mobile apps and hardens the codebase.
+> **Consumer-Pro KB v3.2** operationalizes it for creators who build small but think big.
+> **Vercel** deploys the frontend. **Supabase Cloud** powers the backend.
+> **Claude Code** implements. **Cursor** builds the mobile apps.
 
 ## 22 — Docs Execution System (Core / Generation / Growth / Runtime)
 
@@ -1565,50 +1540,52 @@ All other docs are subordinate execution contracts that must be applied consiste
 
 This system is designed for a workflow where:
 
-- you provide context/contracts to Lovable,
-- you run generation and integration manually,
+- you define contracts and architecture upfront,
+- Claude Code implements on feature branches,
+- Vercel deploys automatically on merge to `main`,
 - but the contract semantics remain deterministic and enforceable.
 
 ---
 
 ### 22.1 Directory Taxonomy (Authoritative)
 
-All contracts must be stored under `/docs/` in one of these layers:
+All contracts are stored in `.claude/` and organized by layer:
 
 ```text
-/docs/Richi_Framework/
+.claude/
+  rules/
+    core/
+      consumer-pro-kb.md              ← ROOT AUTHORITY
+    runtime-contract.md               ← DEPLOYMENT GATE / RUNTIME AUTHORITY
 
-  00_core/
-    Richi AI- Consumer-pro-kb.md              ← ROOT AUTHORITY
-    Richi AI - Ideation-to-product.md
-    Richi AI -Lifecycle.md
+  ref/
+    generation/                       ← Generation contracts
+      legal-pages.md
+      email-implementation.md
+      footer-guide.md
+      ui-ux-guide.md
+      frontend-architecture.md
+      cinematic-pipeline.md
+      chatbot-extractor.md
+    growth/                           ← Growth contracts
+      analytics.md
+      funnel.md
+      seo.md
+    mobile/
+      flutter-kb.md
+    lifecycle.md
+    ideation-to-product.md
+```
 
-  01_generation/
-    Richi AI - legal-pages.md
-    Richi AI - email-implementation.md
-    Richi AI - footer-guide.md
-    Richi AI - ui-ux-guide.md
-    Richi AI - Full-Senior-Frontend-Architecture.md
-    Richi AI - Cinematic-content-pipeline.md
-    Richi AI - Chatbot Document Extractor.md
-
-  02_growth/
-    Richi AI - Analytics.md
-    Richi AI - Funnel.md
-    Richi AI - SEO.md
-
-  03_runtime/
-    Richi AI - runtime-contract.md              ← DEPLOYMENT GATE / RUNTIME AUTHORITY
-
-Naming can change, but the layer meaning must not.
+Layer meaning must be preserved. File naming may vary.
 
 ### 22.2 Authority Hierarchy (Highest → Lowest)
 
 1. `consumer-pro-kb.md` (**ROOT AUTHORITY**)
 2. `runtime-contract.md` (**RUNTIME AUTHORITY / DEPLOYMENT GATE**)
 3. Core execution contracts (`ideation-to-product.md`, `lifecycle.md`)
-4. Generation contracts (`01_generation/*`)
-5. Growth contracts (`02_growth/*`)
+4. Generation contracts (`ref/generation/*`)
+5. Growth contracts (`ref/growth/*`)
 
 #### Rules
 
@@ -1627,7 +1604,7 @@ Contracts are not “nice-to-have guidance”. They define:
 - required behaviors
 - deployment eligibility
 
-**AGENT-EXECUTABLE means:** These documents are structured instructions for the Lovable AI agent, who executes them on explicit user request. The agent does not act autonomously — the user triggers each contract execution by instructing the agent. The agent then follows the contract deterministically.
+**AGENT-EXECUTABLE means:** These documents are structured instructions for Claude Code (or any AI agent), executed on explicit user request. The agent does not act autonomously — the user triggers each contract execution by instructing the agent. The agent then follows the contract deterministically.
 
 A contract must be treated as:
 
@@ -1659,7 +1636,7 @@ This defines the practical execution order.
 
 ---
 
-#### Phase 2 — App Generation (Lovable Build)
+#### Phase 2 — App Generation (React + Vite + Vercel)
 
 **Purpose:** create the application.
 
@@ -1668,16 +1645,18 @@ This defines the practical execution order.
 - `/docs/00_core/consumer-pro-kb.md`
 - `/docs/01_generation/*` (as applicable)
 
-Lovable must implement:
+Implementation must follow:
 
 - Consumer-Pro invariants (contracts, error envelope, typed config, ports/adapters)
 - required UI/UX structure
 - required legal page structure (if public)
 - required integration primitives for Growth if enabled
+- React + Vite SPA with Vercel deployment
+- Supabase Cloud (self-provisioned) for backend
 
 **Output:**
 
-- working app (preview-able)
+- working app (deployable to Vercel)
 
 ---
 
@@ -1717,9 +1696,9 @@ Lovable must implement:
 
 ---
 
-### 22.5 Minimal Context Loading Rule (Lovable-Friendly)
+### 22.5 Minimal Context Loading Rule
 
-When building or iterating in Lovable:
+When building or iterating:
 
 - Always include `consumer-pro-kb.md`
 - Include only the contracts relevant to the current phase
@@ -1770,22 +1749,29 @@ If this structure and authority model is respected, the system guarantees:
 
 ---
 
-### 22.9 Claude Code Migration Mapping
+### 22.9 `.claude/` Distribution
 
-When a project is connected to GitHub and Claude Code workflow is activated,
-the `/docs/Richi_Framework/` structure maps to `.claude/` as follows:
+The `.claude/` folder is the single source of truth for all project configuration.
+It is maintained in the **orchestrator** repo and distributed automatically.
 
-| Current (`/docs/Richi_Framework/`) | `.claude/` Location |
-|------------------------------------|---------------------|
-| `00_core/consumer-pro-kb.md` | `rules/core/consumer-pro-kb.md` |
-| `00_core/lifecycle.md` | `rules/lifecycle.md` |
-| `00_core/ideation-to-product.md` | `rules/ideation-to-product.md` |
-| `03_runtime/runtime-contract.md` | `rules/runtime-contract.md` |
-| `01_generation/*` | `rules/generation/*` |
-| `02_growth/*` | `rules/growth/*` |
-| `09_mobile/*` | `rules/mobile/*` |
+**Distribution mechanisms:**
 
-Migration trigger: GitHub repo exists + `dotclaude` subtree added via `git subtree add`.
+| Method | Trigger | Scope |
+|--------|---------|-------|
+| `sync-dotclaude.yml` | Push to orchestrator `main` | All `*.richi.solutions` GitHub repos |
+| `scripts/sync-local.sh` | Manual (`bash scripts/sync-local.sh`) | All local repos on disk |
+| `/scaffold-project` skill | New project creation | Copies from orchestrator via GitHub API |
+
+**`.claude/` structure:**
+
+| Directory | Content |
+|-----------|---------|
+| `rules/core/consumer-pro-kb.md` | This Knowledge Base (ROOT AUTHORITY) |
+| `rules/runtime-contract.md` | Deployment gate |
+| `ref/` | On-demand reference docs (generation, growth, mobile) |
+| `agents/` | Automated sub-agents |
+| `skills/` | Slash commands |
+| `sync/` | Config files synced to project root |
 
 ---
 
@@ -1798,74 +1784,71 @@ When a project is on GitHub with Claude Code as development environment:
 | Environment | Tool | Trigger |
 |-------------|------|---------|
 | Development | Claude Code (local) | Manual |
-| Abnahme/Staging | Lovable Preview | Auto-sync on `main` push |
-| Production | Lovable Publish | Manual gate |
+| Preview | Vercel Preview Deployment | Auto-deploy on PR |
+| Production | Vercel Production | Auto-deploy on merge to `main` |
 
 **Workflow:**
 
 1. Claude Code works on `feature/*` branch locally
 2. Push to GitHub → GitHub Actions run (lint, typecheck, test, E2E)
-3. PR approved → merge to `main`
-4. `main` push → Lovable Preview updates automatically
-5. Review in Lovable Preview → click Publish → Production
+3. Vercel creates Preview Deployment for the PR
+4. PR approved → merge to `main`
+5. `main` push → Vercel Production Deployment
 
 **Tool responsibilities:**
 
-- Planning: Lovable (Planning Mode only — no code changes)
-- Implementation: Claude Code
-- Pull from GitHub before continuing if Lovable editor was used
+- Prototyping (optional): Lovable for rapid UI prototyping
+- Implementation: Claude Code (sole implementation tool)
+- Hosting: Vercel (frontend) + Supabase Cloud (backend)
+- If Lovable prototype exists: use `/migrate-from-lovable` to convert
 
 ---
 
----
+## 23 — Claude Code Integration & Deployment
 
-## 23 — Claude Code Integration (Dual-Tool Workflow)
-
-**Version:** 1.0
+**Version:** 2.0
 **Status:** ACTIVE — applies when `.claude/` is present in the repository root
 
 ---
 
 ### 23.0 Overview
 
-When this project is connected to GitHub and Claude Code is the development environment,
-two AI tools work together with clearly separated responsibilities:
+Claude Code is the **sole implementation tool** for all projects.
+Lovable may be used for **optional rapid prototyping** — prototypes are migrated
+to the production stack via `/migrate-from-lovable`.
 
-| Tool | Role | Mode |
+| Tool | Role | When |
 |------|------|------|
-| **Lovable** | Planning, Design, Specs, UI/UX Vision | Planning Mode only |
-| **Claude Code** | Implementation, Testing, CI/CD, Refactoring | Via local GitHub clone |
+| **Lovable** | Rapid UI prototyping (optional) | Early exploration only |
+| **Claude Code** | Implementation, Testing, CI/CD | Always — sole implementation tool |
+| **Vercel** | Frontend hosting & deployment | All web projects |
+| **Supabase Cloud** | Backend (Auth, DB, Edge Functions, Storage) | All projects |
 
-**This Knowledge Base serves both tools:**
-- Lovable reads it here (uploaded as KB)
-- Claude Code reads it from `.claude/rules/core/consumer-pro-kb.md` (Git Subtree)
-
-Both versions are identical. The `.claude/` version is the authoritative source.
+**This Knowledge Base** is the single source of truth, stored at
+`.claude/rules/core/consumer-pro-kb.md` and distributed via the orchestrator.
 
 ---
 
-### 23.1 Lovable's Role (Post-Integration)
+### 23.1 Lovable's Role (Optional Prototyping)
 
-Lovable operates in **Planning Mode only** once Claude Code is active.
+Lovable may be used for rapid UI/UX prototyping in early stages.
 
-**Lovable MUST:**
-- Produce product specs, feature specs, UI/UX descriptions in structured format
-- Reference Consumer-Pro contracts when planning features
-- Validate ideas against Consumer-Pro invariants before handing off
-- Output Claude-executable specifications (see Section 23.3)
-- Use Lovable Preview as the Abnahme/staging environment
+**If Lovable is used:**
+- Prototype only — no production deployment via Lovable
+- Export the repository to GitHub
+- Run `/migrate-from-lovable` to set up Vercel hosting + own Supabase Cloud
+- Lovable-generated code is a starting point, not the final architecture
 
 **Lovable MUST NOT:**
-- Modify code directly — Claude Code owns implementation
-- Modify the `.claude/` folder — this is Claude Code's configuration
-- Make direct commits to the repository outside of emergency hotfixes
-- Create code that deviates from the Consumer-Pro architecture without explicit approval
+- Be used for production hosting
+- Be used for Supabase project management (use your own Supabase Cloud projects)
+- Make direct commits after the project is migrated
 
 ---
 
 ### 23.2 Claude Code's Role
 
-Claude Code is the sole implementation tool for GitHub-connected projects.
+Claude Code is the sole implementation tool for all projects.
 
 **Claude Code handles:**
 - All code changes (features, bug fixes, refactoring)
@@ -1873,19 +1856,21 @@ Claude Code is the sole implementation tool for GitHub-connected projects.
 - CI/CD pipeline execution
 - Database migrations and Edge Function updates
 - Git workflow (feature branches, PRs, merge to main)
+- Vercel deployment management
+- Supabase CLI operations
 
 **Claude Code reads from `.claude/`:**
 - `CLAUDE.md` — project instructions and architecture overview
 - `rules/core/consumer-pro-kb.md` — this Knowledge Base
 - `rules/` — all execution contracts (lifecycle, runtime, generation, growth)
 - `agents/` — automated sub-agents (code-reviewer, qa, research)
-- `skills/` — slash commands (e.g. `/update-dotclaude`)
+- `skills/` — slash commands (e.g. `/update-dotclaude`, `/migrate-from-lovable`)
 
 ---
 
-### 23.3 Handoff Protocol: Lovable → Claude Code
+### 23.3 Implementation Spec Format
 
-When planning in Lovable is complete, output a structured spec for Claude Code:
+When planning features, output a structured spec:
 
 ```
 IMPLEMENTATION_SPEC:
@@ -1909,7 +1894,7 @@ runtime_gate:
 [Any runtime-contract.md rules that apply]
 ```
 
-Claude Code receives this spec and implements it on a feature branch.
+Claude Code implements the spec on a feature branch.
 
 ---
 
@@ -1926,7 +1911,9 @@ The `.claude/` folder in the repository root is Claude Code's configuration laye
 │   ├── research.md              # Deep research agent
 │   └── email-classifier.md      # Email classification
 ├── skills/                      # Slash commands
-│   └── update-dotclaude.md      # Pull latest template updates
+│   ├── update-dotclaude/        # Pull latest template updates
+│   ├── migrate-from-lovable/    # Lovable → Vercel + Supabase Cloud migration
+│   └── scaffold-project/        # New project with Vite + React + Vercel
 └── rules/                       # All Consumer-Pro contracts
     ├── core/consumer-pro-kb.md  # This Knowledge Base (authoritative copy)
     ├── lifecycle.md
@@ -1936,73 +1923,140 @@ The `.claude/` folder in the repository root is Claude Code's configuration laye
     └── mobile/
 ```
 
-**Source:** `github.com/richi-solutions/.claude` (Git Subtree — shared across all projects)
+**Source:** `github.com/richi-solutions/orchestrator.richi.solutions` (distributed via `sync-dotclaude.yml`)
 
-Do not modify `.claude/` contents via Lovable. Updates flow from the central repo.
+Updates flow from the orchestrator to all projects automatically.
 
 ---
 
 ### 23.5 Deployment Workflow
 
 ```
-Lovable Planning Mode
-        ↓
-  IMPLEMENTATION_SPEC produced
-        ↓
   Claude Code — feature/* branch
         ↓
   GitHub Push → GitHub Actions
-  (lint · typecheck · test · E2E · Lighthouse · CodeQL)
+  (lint · typecheck · test · E2E)
+        ↓
+  Vercel Preview Deployment (auto on PR)
         ↓
   PR → Review → Merge to main
         ↓
-  Lovable Preview (auto-sync = Abnahme)
-        ↓
-  Approval in Lovable Preview
-        ↓
-  Lovable Publish → Production
+  Vercel Production Deployment (auto on main)
 ```
 
 ---
 
-### 23.6 Emergency Hotfix Protocol
+### 23.6 Vercel Configuration
 
-In rare cases where a production fix is needed immediately via Lovable editor:
+Every project should have a `vercel.json` for Vite SPA configuration:
 
-1. Make the fix directly in Lovable editor
-2. Lovable auto-commits to GitHub (bidirectional sync)
-3. **Before next Claude Code session:** `git pull` to sync local clone
-4. Continue with normal Claude Code workflow
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "regions": ["fra1"],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
 
-This prevents merge conflicts between Lovable editor commits and Claude Code commits.
+The `rewrites` rule ensures React Router works correctly for client-side routing.
+
+**Environment Variables (Vercel Dashboard):**
+
+| Variable | Scope | Description |
+|----------|-------|-------------|
+| `VITE_SUPABASE_URL` | All | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | All | Supabase anonymous key |
+
+**Vercel CLI Setup:**
+```bash
+npm i -g vercel
+vercel login
+vercel link
+vercel env pull .env.local
+```
 
 ---
 
-### 23.7 Knowledge Base Sync Rule
+### 23.7 Supabase Cloud Setup
 
-This Knowledge Base exists in two locations — always kept in sync:
+Each project uses its own Supabase Cloud project (self-provisioned at supabase.com).
 
-| Location | Used by |
-|----------|---------|
-| Lovable Knowledge Base (uploaded) | Lovable AI |
-| `.claude/rules/core/consumer-pro-kb.md` | Claude Code |
+**Setup:**
+```bash
+supabase init
+supabase link --project-ref <your-project-ref>
+supabase db push  # Apply migrations
+```
+
+**Environment Separation:**
+
+| Environment | Supabase Project | Vercel Environment |
+|-------------|------------------|--------------------|
+| Development | Local (`supabase start`) | `.env.local` |
+| Preview | Staging Supabase project | Vercel Preview env vars |
+| Production | Production Supabase project | Vercel Production env vars |
+
+**Migration Workflow:**
+1. Create migration: `supabase migration new <name>`
+2. Edit SQL file in `supabase/migrations/`
+3. Test locally: `supabase db reset`
+4. Deploy: `supabase db push` (after merge to main)
+
+---
+
+### 23.8 Emergency Hotfix Protocol
+
+For critical production fixes:
+
+1. Create hotfix branch from `main`
+2. Apply fix via Claude Code
+3. Push + merge to `main` (fast-track PR review)
+4. Vercel auto-deploys immediately
+5. If rollback needed: use Vercel Instant Rollback in dashboard
+
+---
+
+### 23.9 Knowledge Base Sync Rule
+
+This Knowledge Base is stored in one location and distributed automatically:
+
+| Source | Distribution |
+|--------|-------------|
+| `orchestrator.richi.solutions/.claude/` | `sync-dotclaude.yml` workflow |
 
 When the KB is updated:
-1. Update `.claude/rules/core/consumer-pro-kb.md` in the central `dotclaude` repo
-2. Run `/update-dotclaude` in each project (or `update-all-dotclaude.sh`)
-3. Re-upload updated KB to Lovable
+1. Update `.claude/rules/core/consumer-pro-kb.md` in the orchestrator repo
+2. Push to `main` — `sync-dotclaude.yml` distributes to all `*.richi.solutions` repos
+3. For local repos: run `bash scripts/sync-local.sh`
 
 ---
 
 ## Changelog
 
-### v3.1 (2026-02-22)
+### v3.2 (2026-03-11)
+
+- 🔄 **BREAKING:** Switched from Lovable hosting to Vercel for all frontend deployment
+- 🔄 **BREAKING:** Switched from Lovable-managed Supabase to self-provisioned Supabase Cloud
+- 📝 Default framework remains React + Vite (SPA on Vercel)
+- 🔄 Rewrote Section 23: Claude Code Integration — Vercel + Supabase Cloud deployment
+- 🔄 Updated Section 02: Folder Blueprint and Routing patterns (framework-agnostic)
+- 🔄 Updated Section 09: Branch Mapping to Vercel Preview/Production
+- 🔄 Updated Section 16: Multi-Platform Architecture diagram
+- 🔄 Updated Section 22: Docs Execution System for Vercel workflow
+- 📝 Added Vercel Configuration section (23.6)
+- 📝 Added Supabase Cloud Setup section (23.7)
+- 📝 Lovable demoted to optional prototyping tool
+- 📝 Added `/migrate-from-lovable` skill reference
+
+### v3.1 (2026-02-22) — superseded by v3.2
 
 - ✨ Added Section 23: Claude Code Integration (Dual-Tool Workflow)
-- 📝 Defines Lovable's Planning-only role post-integration
 - 📝 Defines Claude Code's implementation role
 - 📝 Adds IMPLEMENTATION_SPEC handoff protocol
-- 📝 Documents .claude/ folder structure for Lovable context
+- 📝 Documents .claude/ folder structure
 - 📝 Adds Emergency Hotfix Protocol
 - 📝 Adds KB Sync Rule
 
@@ -2010,13 +2064,13 @@ When the KB is updated:
 
 - ✨ Added Section 22.9: Claude Code Migration Mapping
 - ✨ Added Section 22.10: GitHub + Claude Code Workflow
-- 🔄 Updated Section 09: Branch Mapping to reflect Lovable Preview staging model
-- 📝 Agent header updated: Lovable AI (planning) / Claude Code (implementation)
+- 🔄 Updated Section 09: Branch Mapping
+- 📝 Agent header updated
 
 ### v2.5 (2026-02-17)
 
 - ✨ Added Section 22: Docs Execution System (Core / Generation / Growth / Runtime)
-- 📝 Section 22.3: Added AGENT-EXECUTABLE definition (Lovable AI agent, on user request)
+- 📝 Section 22.3: Added AGENT-EXECUTABLE definition (AI agent, on user request)
 - 📝 Section 22.4 Phase 3: Removed (Hub-Spoke architecture deprecated)
 
 ### v2.0 (2025-12-16)

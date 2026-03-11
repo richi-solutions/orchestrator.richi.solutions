@@ -1,6 +1,6 @@
 ---
 name: scaffold-project
-description: Scaffolds a new project with the full richi-solutions standard — Vite + React + TypeScript + Supabase + Tailwind + shadcn/ui + .claude config. Use /scaffold-project [name] to invoke.
+description: Scaffolds a new project with the full richi-solutions standard — Vite + React + TypeScript + Supabase Cloud + Tailwind + shadcn/ui + Vercel + .claude config. Use /scaffold-project [name] to invoke.
 disable-model-invocation: true
 allowed-tools: Bash, Read, Write, Edit
 argument-hint: "[project-name]"
@@ -63,12 +63,18 @@ src/
   hooks/          # Global custom hooks
   lib/            # Utilities, supabase client, constants
   types/          # Global TypeScript types
-  routes/         # Route definitions
+  pages/          # Route pages (React Router)
+  domain/         # Pure use-cases, no I/O
+  ports/          # Interfaces
+  adapters/       # Concrete implementations
+  contracts/      # API contracts
+    v1/
 ```
 
 Create these directories:
 ```bash
-mkdir -p src/components src/features src/hooks src/lib src/types src/routes
+mkdir -p src/components src/features src/hooks src/lib src/types src/pages
+mkdir -p src/domain src/ports src/adapters src/contracts/v1
 ```
 
 ## Step 5: Supabase Client
@@ -98,12 +104,35 @@ VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
 ```
 
-## Step 7: Git Init & .claude Setup
+## Step 7: Vercel Configuration
+
+Create `vercel.json`:
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "regions": ["fra1"],
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+## Step 8: Supabase Init
+
+```bash
+npx supabase init
+```
+
+## Step 9: Git Init & .claude Setup
 
 ```bash
 git init
 git add -A
-git commit -m "feat: initial project scaffold"
+git commit -m "feat: initial project scaffold
+
+Vite + React + TypeScript + Tailwind CSS + shadcn/ui.
+Supabase Cloud client configured. Vercel deployment ready."
 ```
 
 Copy shared `.claude/` content from the orchestrator (source of truth):
@@ -129,14 +158,14 @@ gh api "repos/${OWNER}/${SOURCE_REPO}/contents/.claude/settings.json?ref=main" \
   --jq '.download_url' | xargs curl -sL -o .claude/settings.json
 ```
 
-Create a project-specific `CLAUDE.md` for this project. Use the orchestrator's CLAUDE.md as a template but adapt the Tech Stack, Folder Structure, and project-specific instructions.
+Create a project-specific `CLAUDE.md` for this project. Use the orchestrator's CLAUDE.md as a template but adapt the project-specific instructions.
 
 ```bash
 git add .claude/
 git commit -m "chore: add .claude from orchestrator"
 ```
 
-## Step 8: GitHub Repo
+## Step 10: GitHub Repo
 
 Create the GitHub repo and push:
 
@@ -147,7 +176,7 @@ git push -u origin main
 
 If the repo doesn't exist yet, instruct the user to create it on GitHub first.
 
-## Step 9: Sync Config
+## Step 11: Sync Config
 
 Copy all standardized configs from `.claude/sync/` to their target locations:
 
@@ -159,7 +188,20 @@ if [ -d ".claude/sync" ]; then
 fi
 ```
 
-## Step 10: Summary
+## Step 12: Vercel Setup
+
+```bash
+# Login to Vercel (if not already)
+vercel login
+
+# Link project
+vercel link
+
+# Pull environment variables
+vercel env pull .env.local
+```
+
+## Step 13: Summary
 
 ```
 ## Project Scaffolded: $ARGUMENTS
@@ -167,18 +209,23 @@ fi
 ### Tech Stack
 - Vite + React 19 + TypeScript
 - Tailwind CSS + shadcn/ui
-- Supabase (client configured)
+- Supabase Cloud (client configured)
 - React Router + TanStack Query
 - React Hook Form + Zod
+- Vercel deployment ready
 
 ### Structure
 src/
+  pages/       — route pages (React Router)
   components/  — shared UI
   features/    — feature modules
   hooks/       — global hooks
   lib/         — supabase client, utils
   types/       — global types
-  routes/      — route config
+  contracts/   — API contracts
+  domain/      — pure business logic
+  ports/       — interfaces
+  adapters/    — implementations
 
 ### .claude
 - Copied from orchestrator.richi.solutions (source of truth)
@@ -186,7 +233,8 @@ src/
 - Updates distributed automatically via sync-dotclaude.yml
 
 ### Next Steps
-1. Fill in .env with Supabase credentials
-2. Run `supabase init` if using local Supabase
-3. Create your first feature with /new-feature
+1. Fill in .env with Supabase credentials (or use `vercel env pull`)
+2. Link Supabase project: `supabase link --project-ref <ref>`
+3. Run `vercel link` to connect to Vercel project
+4. Create your first feature with /new-feature
 ```
