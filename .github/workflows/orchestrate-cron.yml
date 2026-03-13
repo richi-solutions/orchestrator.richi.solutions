@@ -89,3 +89,10 @@ jobs:
           echo "| Job | \`${{ steps.job.outputs.name }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Trigger | \`${{ github.event_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Time | \`$(date -u +%Y-%m-%dT%H:%M:%SZ)\` |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -f /tmp/response.json ]; then
+            STATUS=$(jq -r '.data.status // .error.code // "unknown"' /tmp/response.json 2>/dev/null)
+            ERROR=$(jq -r '.data.error // .error.message // "none"' /tmp/response.json 2>/dev/null)
+            echo "| Status | \`$STATUS\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Error | \`$ERROR\` |" >> "$GITHUB_STEP_SUMMARY"
+          fi

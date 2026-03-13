@@ -24,6 +24,7 @@ import { Scheduler } from './scheduler/scheduler';
 // Routes
 import { healthRouter } from './routes/health';
 import { createTriggerRouter } from './routes/trigger';
+import { createAdminRouter } from './routes/admin';
 
 // --- Composition Root ---
 const env = loadEnv();
@@ -58,6 +59,17 @@ async function executeJob(jobName: string, jobDef: import('./contracts/v1/schedu
   const result = await executor.execute(jobName, jobDef);
 
   if (result.ok) {
+    // Surface error details from individual results for debugging
+    const firstError = result.data.results.find((r) => r.status === 'failure')?.error;
+    if (result.data.status === 'failure' || result.data.status === 'partial') {
+      logger.warn('job_completed_with_failures', {
+        jobName,
+        status: result.data.status,
+        summary: result.data.summary,
+        firstError,
+      });
+    }
+
     const storeResult = await store.saveJobRun(result.data);
     if (storeResult.ok) {
       logger.info('job_completed_and_stored', { jobName, status: result.data.status, id: storeResult.data.id });
@@ -93,9 +105,9 @@ async function executeJob(jobName: string, jobDef: import('./contracts/v1/schedu
       }
     } else {
       logger.error('job_store_failed', new Error(storeResult.error.message), { jobName });
-      return { status: result.data.status, storeError: storeResult.error.message };
+      return { status: result.data.status, error: firstError, storeError: storeResult.error.message };
     }
-    return { status: result.data.status };
+    return { status: result.data.status, error: firstError };
   } else {
     // Persist failure so it's visible in the database, not just server logs
     const completedAt = new Date().toISOString();
@@ -131,6 +143,7 @@ const app = express();
 app.use(express.json());
 app.use(healthRouter);
 app.use(createTriggerRouter(scheduler));
+app.use(createAdminRouter(store));
 
 // 404 fallback
 app.use((_req, res) => {

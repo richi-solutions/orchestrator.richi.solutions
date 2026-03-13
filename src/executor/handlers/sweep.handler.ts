@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Sweep handler — fan-out pattern for per-repo agent execution.
+ *
+ * Discovers all repos, loads the agent prompt, then runs a Claude call
+ * against each repo with capped concurrency (max 3 parallel workers).
+ * Overall status is success/partial/failure based on individual results.
+ *
+ * @module executor/handlers/sweep.handler
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';

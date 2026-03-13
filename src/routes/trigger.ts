@@ -1,3 +1,12 @@
+/**
+ * @fileoverview HTTP trigger routes for manual job execution.
+ *
+ * Provides POST /api/trigger/:jobName (execute a job and wait for result)
+ * and GET /api/jobs (list all registered job names). Both require X-API-Key.
+ *
+ * @module routes/trigger
+ */
+
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { requireApiKey } from '../middleware/auth';
@@ -6,6 +15,12 @@ import { Scheduler } from '../scheduler/scheduler';
 // Safety cap so the HTTP request doesn't hang forever
 const MAX_WAIT_MS = 10 * 60 * 1000; // 10 minutes
 
+/**
+ * Creates the trigger router with POST /api/trigger/:jobName and GET /api/jobs.
+ *
+ * @param scheduler - Scheduler instance for job lookup and manual triggering
+ * @returns Express Router with trigger and jobs endpoints
+ */
 export function createTriggerRouter(scheduler: Scheduler): Router {
   const router = Router();
 

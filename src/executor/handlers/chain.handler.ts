@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Chain handler — waits for upstream job, then processes output.
+ *
+ * Polls the store for today's result of the dependency job (every 60s, timeout
+ * 30 min), then feeds the upstream output as the user message to Claude.
+ * Attempts to parse structured social content JSON from the response.
+ *
+ * @module executor/handlers/chain.handler
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';

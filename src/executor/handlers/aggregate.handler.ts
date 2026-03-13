@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Aggregate handler — collects data across repos and summarizes.
+ *
+ * Discovers all repos, fetches commits from the last 24 hours via GitHubPort,
+ * groups them by repo, and runs a single Claude call to generate a summary.
+ * Commit metadata (_commitMeta) is attached for downstream persistence.
+ *
+ * @module executor/handlers/aggregate.handler
+ */
+
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';

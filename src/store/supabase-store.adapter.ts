@@ -1,3 +1,13 @@
+/**
+ * @fileoverview Supabase adapter for the StorePort interface.
+ *
+ * Persists job runs, commit summaries, and social content to Supabase
+ * using the service role key (bypasses RLS). All tables have RLS enabled
+ * with a service_full_access policy.
+ *
+ * @module store/supabase-store.adapter
+ */
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
 import { StorePort, CommitSummaryInput, SocialContentInput } from './store.port';
@@ -5,6 +15,7 @@ import { JobResult } from '../contracts/v1/job-result.schema';
 import { Result, success, failure } from '../lib/result';
 import { logger } from '../lib/logger';
 
+/** Supabase implementation of StorePort using the service role key. */
 export class SupabaseStoreAdapter implements StorePort {
   private client: SupabaseClient;
 
