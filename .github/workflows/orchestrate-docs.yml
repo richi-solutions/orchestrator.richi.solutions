@@ -121,6 +121,10 @@ jobs:
             # Extract summary from Claude output
             SUMMARY=$(cat /tmp/docs-result.json | jq -r '.result // "No summary available"' 2>/dev/null || echo "Documentation update completed, see diff for changes.")
 
+            # Ensure labels exist (create if missing)
+            gh label create "documentation" --repo "richi-solutions/${{ matrix.repo }}" --color "0075ca" --description "Documentation updates" 2>/dev/null || true
+            gh label create "automated" --repo "richi-solutions/${{ matrix.repo }}" --color "bfdadc" --description "Automated by CI" 2>/dev/null || true
+
             gh pr create \
               --repo "richi-solutions/${{ matrix.repo }}" \
               --title "docs: automated documentation update $(date +%Y-%m-%d)" \
