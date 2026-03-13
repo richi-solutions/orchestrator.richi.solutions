@@ -8,7 +8,7 @@
  * @module scheduler/scheduler
  */
 
-import cron from 'node-cron';
+import cron, { ScheduledTask } from 'node-cron';
 import { ScheduleConfig, JobDefinition } from '../contracts/v1/schedule.schema';
 import { logger } from '../lib/logger';
 
@@ -30,7 +30,7 @@ export interface JobTriggerResult {
  * scheduler.start();
  */
 export class Scheduler {
-  private tasks: Map<string, cron.ScheduledTask> = new Map();
+  private tasks: Map<string, ScheduledTask> = new Map();
 
   constructor(
     private config: ScheduleConfig,

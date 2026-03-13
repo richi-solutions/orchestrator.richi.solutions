@@ -25,7 +25,7 @@ export function createTriggerRouter(scheduler: Scheduler): Router {
   const router = Router();
 
   router.post('/api/trigger/:jobName', requireApiKey, async (req: Request, res: Response) => {
-    const { jobName } = req.params;
+    const jobName = req.params.jobName as string;
 
     const trigger = scheduler.triggerManually(jobName);
 
