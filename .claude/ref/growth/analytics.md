@@ -149,6 +149,10 @@ share_triggered
 export_triggered
 ```
 
+**Billing events** (when monetization is active): see `ref/generation/monetization.md` Section 8.
+
+**Reward & voting events** (when rewards are active): see `ref/generation/rewards.md` Section 6.
+
 Product Architect Agent determines optional events.
 
 ---
