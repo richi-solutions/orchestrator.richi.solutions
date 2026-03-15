@@ -113,13 +113,15 @@ for repo_dir in "$PARENT_DIR"/*.richi.solutions; do
     cp -r "$repo_dir/.claude/sync/." "$repo_dir/"
   fi
 
-  # Check for changes
-  if [ -z "$(git -C "$repo_dir" status --porcelain)" ]; then
+  # Stage all changes first (normalizes line endings)
+  git -C "$repo_dir" add -A
+
+  # Check if there are staged changes after normalization
+  if [ -z "$(git -C "$repo_dir" diff --cached --name-only)" ]; then
     echo "  Already up to date"
   else
     echo "  Changes detected:"
-    git -C "$repo_dir" diff --stat
-    git -C "$repo_dir" add -A
+    git -C "$repo_dir" diff --cached --stat
     git -C "$repo_dir" commit -m "chore: sync .claude from orchestrator" \
       -m "Synced shared .claude/ content and config files." \
       -m "Automated by scripts/sync-local.sh"
