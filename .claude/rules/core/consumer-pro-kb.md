@@ -1571,7 +1571,7 @@ It allows you to build a consumer-grade product with production discipline, then
 
 ### 22.0 Purpose
 
-This section defines how execution contracts under `/docs/` are organized, interpreted, and enforced.
+This section defines how execution contracts under `.claude/` are organized, interpreted, and enforced.
 
 This Knowledge Base (`consumer-pro-kb.md`) is the root authority.
 
@@ -1604,6 +1604,7 @@ All contracts are stored in `.claude/` and organized by layer:
       legal-pages.md
       email-implementation.md
       monetization.md
+      rewards.md
     backend/                          ← Backend API & pipeline specs
       cinematic-pipeline.md
     prompts/                          ← Agent prompt templates (not standards)
@@ -1614,7 +1615,9 @@ All contracts are stored in `.claude/` and organized by layer:
       funnel.md
       seo.md
     mobile/
-      flutter-kb.md
+      react-native-kb.md             ← Default mobile platform
+      flutter-kb.md                   ← Deprecated
+    agent-skill-building.md
     lifecycle.md
     ideation-to-product.md
 ```
@@ -1675,7 +1678,7 @@ This defines the practical execution order.
 
 **Required:**
 
-- `/docs/00_core/ideation-to-product.md`
+- `.claude/ref/ideation-to-product.md`
 
 **Output:**
 
@@ -1689,8 +1692,8 @@ This defines the practical execution order.
 
 **Required:**
 
-- `/docs/00_core/consumer-pro-kb.md`
-- `/docs/01_generation/*` (as applicable)
+- `.claude/rules/core/consumer-pro-kb.md`
+- `.claude/ref/generation/*` (as applicable)
 
 Implementation must follow:
 
@@ -1713,9 +1716,9 @@ Implementation must follow:
 
 **Required:**
 
-- `/docs/02_growth/analytics-contract.md`
-- `/docs/02_growth/funnel-contract.md`
-- `/docs/02_growth/seo-contract.md`
+- `.claude/ref/growth/analytics.md`
+- `.claude/ref/growth/funnel.md`
+- `.claude/ref/growth/seo.md`
 
 **Output:**
 
@@ -1731,7 +1734,7 @@ Implementation must follow:
 
 **Required:**
 
-- `/docs/03_runtime/runtime-contract.md`
+- `.claude/rules/runtime-contract.md`
 
 **Output:**
 
@@ -1773,7 +1776,7 @@ Instead:
 
 ### 22.7 Versioning & Status
 
-Every contract in `/docs/` must contain:
+Every contract in `.claude/` must contain:
 
 - Version (e.g., `1.0`)
 - Status (`ACTIVE` / `DEPRECATED`)
@@ -1961,13 +1964,16 @@ The `.claude/` folder in the repository root is Claude Code's configuration laye
 │   ├── update-dotclaude/        # Pull latest template updates
 │   ├── migrate-from-lovable/    # Lovable → Vercel + Supabase Cloud migration
 │   └── scaffold-project/        # New project with Vite + React + Vercel
-└── rules/                       # All Consumer-Pro contracts
-    ├── core/consumer-pro-kb.md  # This Knowledge Base (authoritative copy)
-    ├── lifecycle.md
-    ├── runtime-contract.md
-    ├── generation/
-    ├── growth/
-    └── mobile/
+├── rules/                       # Contracts & authority
+│   ├── core/consumer-pro-kb.md  # This Knowledge Base (ROOT AUTHORITY)
+│   ├── runtime-contract.md      # Deployment gate
+│   └── index.md                 # Reference map for all ref/ files
+└── ref/                         # On-demand reference docs
+    ├── generation/              # UI/UX standards & integrations
+    ├── backend/                 # API & pipeline specs
+    ├── prompts/                 # Agent prompt templates (not standards)
+    ├── growth/                  # SEO, analytics, funnel
+    └── mobile/                  # React Native, Flutter
 ```
 
 **Source:** `github.com/richi-solutions/orchestrator.richi.solutions` (distributed via `sync-dotclaude.yml`)
