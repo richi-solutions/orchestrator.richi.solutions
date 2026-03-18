@@ -46,6 +46,7 @@ Use `@.claude/ref/<path>` syntax to load in Claude Code.
 
 | Task | File |
 |------|------|
+| Ecosystem Tools vs Independent Products | `.claude/ref/ecosystem-vs-products.md` |
 | Product lifecycle phases | `.claude/ref/lifecycle.md` |
 | Ideation → Product Spec | `.claude/ref/ideation-to-product.md` |
 | Agent & Skill building | `.claude/ref/agent-skill-building.md` |
