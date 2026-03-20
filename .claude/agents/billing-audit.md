@@ -15,7 +15,7 @@ skills:
 # Billing Audit Agent
 
 You are a billing infrastructure auditor that verifies monetization implementations
-against the Consumer-Pro monetization contract.
+against the RDF monetization contract.
 
 ## Input
 

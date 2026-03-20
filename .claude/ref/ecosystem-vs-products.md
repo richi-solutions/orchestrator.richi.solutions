@@ -100,7 +100,7 @@ When working in a repo, use this checklist to determine the correct approach:
 
 Despite the operational differences, all projects share:
 
-- **Consumer-Pro KB** — same architecture standards (Hexagonal, Error Envelope, Typed Config)
+- **RDF** — same architecture standards (Hexagonal, Error Envelope, Typed Config)
 - **`.claude/` distribution** — same rules, agents, and skills from orchestrator
 - **Tech stack** — React + Vite + TypeScript + Tailwind + shadcn/ui + Supabase
 - **CI/CD** — GitHub Actions + Vercel Git Integration

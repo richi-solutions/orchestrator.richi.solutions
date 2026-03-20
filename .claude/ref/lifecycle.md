@@ -131,7 +131,7 @@ App Generator Agent
 
 Execution Contracts:
 
-* Consumer-Pro Knowledge Base
+* Richi Development Framework (RDF)
 * UI/UX Guide
 * Legal Pages Contract
 * product_spec
@@ -418,7 +418,7 @@ This lifecycle is the execution backbone of the Richi AI Product Factory.
 This lifecycle is compatible with:
 
 * ideation-to-product.md
-* Consumer-Pro Knowledge Base
+* Richi Development Framework (RDF)
 * SEO Contract
 * Analytics Contract
 * Funnel Contract

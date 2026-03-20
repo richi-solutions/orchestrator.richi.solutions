@@ -2,8 +2,8 @@
 
 **Version:** 1.0
 **Status:** ACTIVE
-**Authority:** CONSUMER-PRO GENERATION CONTRACT
-**Depends on:** `rules/core/consumer-pro-kb.md` (ROOT AUTHORITY), `ref/generation/monetization.md`
+**Authority:** RDF GENERATION CONTRACT
+**Depends on:** `rules/core/rdf.md` (ROOT AUTHORITY), `ref/generation/monetization.md`
 
 ---
 
@@ -441,7 +441,7 @@ export type FeatureVoteInput = z.infer<typeof FeatureVoteInputSchema>;
 
 ## 4 --- Edge Function Patterns
 
-All functions follow the Consumer-Pro Edge Function pattern (see KB Section 19).
+All functions follow the RDF Edge Function pattern (see KB Section 19).
 
 ### 4.1 Claim Reward
 

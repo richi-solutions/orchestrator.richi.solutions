@@ -1,15 +1,15 @@
-# Project Instructions — Richi AI Consumer-Pro Framework
+# Project Instructions — Richi Development Framework
 
 **"Lean Today. Limitless Tomorrow."**
 
-This project follows the **Consumer-Pro Knowledge Base v3.2**.
-Full reference: `rules/core/consumer-pro-kb.md`
+This project follows the **Richi Development Framework (RDF) v4.0**.
+Full reference: `rules/core/rdf.md`
 
 ---
 
 ## Authority Hierarchy
 
-1. `rules/core/consumer-pro-kb.md` — ROOT AUTHORITY
+1. `rules/core/rdf.md` — ROOT AUTHORITY
 2. `rules/runtime-contract.md` — RUNTIME AUTHORITY / DEPLOYMENT GATE
 3. `ref/*` — Reference contracts (loaded on demand via `@.claude/ref/<path>`)
 
@@ -96,7 +96,7 @@ main       →  Vercel Production Deployment (auto on merge)
 
 | Rule File | Purpose |
 |-----------|---------|
-| `rules/core/consumer-pro-kb.md` | Full framework reference (ROOT AUTHORITY) |
+| `rules/core/rdf.md` | Richi Development Framework (ROOT AUTHORITY) |
 | `rules/runtime-contract.md` | Deployment gate — must pass before publish |
 | `rules/index.md` | Reference map — on-demand files per task |
 

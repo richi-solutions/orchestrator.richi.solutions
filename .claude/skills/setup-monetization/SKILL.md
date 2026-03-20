@@ -25,7 +25,7 @@ Edge functions: !`ls supabase/functions/ 2>/dev/null || echo "no edge functions"
 
 ## Step 1: Validate Environment
 
-1. Confirm this is a Consumer-Pro project (check for `src/`, `supabase/`, `.claude/`)
+1. Confirm this is an RDF project (check for `src/`, `supabase/`, `.claude/`)
 2. Confirm Supabase is initialized (`supabase/config.toml` exists)
 3. Parse `$ARGUMENTS` to determine which providers to set up:
    - `stripe` --- Stripe only (Web)

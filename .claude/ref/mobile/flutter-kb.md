@@ -1,9 +1,9 @@
-## Richi AI — Flutter Knowledge Base (Consumer‑Pro Compatible) v2.0
+## Richi AI — Flutter Knowledge Base (RDF Compatible) v2.0
 
 **Status:** DEPRECATED (2026-03-16) — Superseded by `react-native-kb.md`
 
 > **Migration note:** React Native with Expo is now the default mobile recommendation
-> for Consumer-Pro projects. The React + TypeScript stack enables direct code sharing
+> for RDF projects. The React + TypeScript stack enables direct code sharing
 > (contracts, hooks, API client) between web and mobile. See `react-native-kb.md`.
 >
 > This document is retained for reference in case a project uses Flutter.
@@ -12,7 +12,7 @@
 
 **Version:** 2.0
 
-**Purpose:** Define how to build and maintain a Flutter mobile client (iOS + Android from one codebase) that cleanly integrates with a Consumer‑Pro compliant backend/web app running on Vercel + Supabase Cloud (React/TypeScript).
+**Purpose:** Define how to build and maintain a Flutter mobile client (iOS + Android from one codebase) that cleanly integrates with an RDF compliant backend/web app running on Vercel + Supabase Cloud (React/TypeScript).
 
 **Audience:** Solo builders and small teams.
 
@@ -21,7 +21,7 @@
 ## Table of Contents
 
 ```
-00 — What is Consumer‑Pro? (Context & Philosophy)
+00 — What is RDF? (Context & Philosophy)
 01 — Core Invariants (Never Break These)
 02 — Architecture Doctrine (Flutter)
 03 — Repository & Folder Blueprint (Standard)
@@ -43,20 +43,20 @@
 
 ---
 
-## 00 — What is Consumer‑Pro? (Context & Philosophy)
+## 00 — What is RDF? (Context & Philosophy)
 
-**Consumer‑Pro** is Richi AI’s pragmatic “middle ground” between MVP speed and SaaS discipline.
+**RDF (Richi Development Framework)** is Richi AI’s pragmatic “middle ground” between MVP speed and SaaS discipline.
 
 It is a framework‑agnostic set of rules and patterns for consumer applications that must ship fast, remain maintainable, and evolve without rewrites.
 
-### Why Consumer‑Pro exists
+### Why RDF exists
 
 - **Ship features fast** without creating architectural debt.
 - **Keep contracts stable** so multi‑platform clients (Web + Mobile) do not break.
 - **Support multi‑platform** from day one (Web, Mobile, Backend).
 - **Make i18n non‑optional** for consumer products.
 
-### What “Consumer‑Pro compliant” means in practice
+### What “RDF compliant” means in practice
 
 - **Contracts as Law**: APIs/events are typed, validated, versioned, and treated as trust boundaries.
 - **Error Envelope Standard**: failures are returned consistently (e.g., `{ ok, data?, error?, traceId? }`).
@@ -64,13 +64,13 @@ It is a framework‑agnostic set of rules and patterns for consumer applications
 - **Observability‑Light**: enough visibility to debug and operate confidently (especially as a solo builder).
 - **Offline strategy is pragmatic**: offline mode is chosen only when it provides real user value.
 
-### Flutter’s role in a Consumer‑Pro system
+### Flutter’s role in an RDF system
 
 The Flutter app is a **client surface**:
 
 - It orchestrates calls, manages UX, handles caching where useful, and provides a native mobile experience.
 - It does **not** own authoritative business rules (those live server‑side).
-- It respects Consumer‑Pro contracts, error envelopes, i18n rules, and privacy/security constraints.
+- It respects RDF contracts, error envelopes, i18n rules, and privacy/security constraints.
 
 ---
 
@@ -212,7 +212,7 @@ lib/
 
 ### Contracts (source of truth)
 
-- Consumer‑Pro web/backend owns canonical contracts (OpenAPI/JSON Schema/event schemas).
+- RDF web/backend owns canonical contracts (OpenAPI/JSON Schema/event schemas).
 - Mobile must treat those contracts as trust boundaries and keep backward compatibility.
 
 ### DTO rules
@@ -371,7 +371,7 @@ Every core screen should support:
 
 ## 14 — Google AdMob + Consent (UMP) Integration (Android + iOS)
 
-This section describes a **Consumer‑Pro compatible** way to integrate ads while ensuring consent is requested **after download and first app open**, stored on device, and applied consistently.
+This section describes an **RDF compatible** way to integrate ads while ensuring consent is requested **after download and first app open**, stored on device, and applied consistently.
 
 ### 14.1 — Principles
 

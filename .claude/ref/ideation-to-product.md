@@ -29,7 +29,7 @@ The agent must:
 * resolve ambiguity
 * infer missing elements using best practices
 * produce a complete Product Spec
-* ensure compatibility with the Richi Consumer-Pro framework
+* ensure compatibility with the Richi Development Framework (RDF)
 
 The agent must NOT ask questions.
 
@@ -229,7 +229,7 @@ The agent must:
 * resolve ambiguity autonomously
 * prefer simple MVP scope over complex initial builds
 * optimize for rapid deployment and validation
-* ensure compatibility with Consumer-Pro standards
+* ensure compatibility with RDF standards
 
 The agent must NOT:
 

@@ -2,7 +2,7 @@
 
 **Version:** 1.0
 **Status:** ACTIVE
-**Authority:** Extends Consumer-Pro KB Section 06 (Security & Privacy)
+**Authority:** Extends RDF Section 06 (Security & Privacy)
 **Scope:** Ecosystem Tools only (Richi Hub, Ventura, Media, future Open Services)
 
 ---

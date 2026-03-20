@@ -16,13 +16,13 @@
 04 — Consumer UX & Mobile Principles
 05 — PWA & Offline-First (Decision Tree)
 06 — Security & Privacy
-07 — Observability-Light
-08 — Pragmatic Testing
-09 — CI/CD-Lite
+07 — Observability
+08 — Testing
+09 — CI/CD
 10 — Event Schema
-11 — Migration Playbook
-12 — Delta Map
-13 — Implementation Priority Matrix
+11 — Scaling Playbook
+12 — Phase Capability Map
+13 — Quality Gate Matrix
 14 — External Dependencies
 15 — Performance Targets
 16 — Multi-Platform Architecture
@@ -57,7 +57,7 @@ It enables a solo founder with AI-powered development (Claude Code) to achieve e
 
 | Change | Rationale |
 |--------|-----------|
-| **Renamed** from "Consumer-Pro KB" to "Richi Development Framework" | Framework applies to all project types (consumer, SaaS, internal tools) |
+| **Renamed** from "RDF KB" to "Richi Development Framework" | Framework applies to all project types (consumer, SaaS, internal tools) |
 | **Quality Gate Matrix** replaces static requirements | Phase-dependent quality targets (Bootstrap → Foundation → Production) |
 | **Phase triggers** are structure-based, not DAU-based | AI-powered development enables enterprise quality without team scaling |
 | **Sections 08, 11, 12, 13 consolidated** | Reduced redundancy, single Quality Gate Matrix as reference |
@@ -506,7 +506,7 @@ test('user can complete main feature flow', async ({ page }) => {
 
 ---
 
-## 09 — CI/CD-Lite
+## 09 — CI/CD
 
 Use **Vercel** for frontend deployment (Git Integration). Supabase Edge Functions deploy via `supabase functions deploy`.
 
@@ -726,32 +726,40 @@ When scale demands it (p95 > 750ms, error rate > 2%, multiple app surfaces):
 
 ---
 
-## 13 — Implementation Priority Matrix
+## 13 — Quality Gate Matrix
 
-### Phase 1: Launch (Week 1–4)
+This is the central reference for phase-dependent quality requirements.
+Phases are structure-driven: move to the next phase when all gates of the current phase are met.
 
-- ✅ Contracts (Zod validation)
-- ✅ Security (RLS + JWT)
-- ✅ Consumer UX patterns (skeleton loaders, empty states)
-- ✅ PWA basics (manifest, service worker shell)
-- ✅ i18n setup (basic structure)
-- ✅ CI: lint, typecheck, build, test, commitlint, security scanning
-- ⏭️ Skip: Full offline mode, complex observability, Lighthouse CI, CodeQL, separate Deploy workflows
+### Phase Definitions
 
-### Phase 2: Traction (100+ DAU)
+| Phase | Trigger | Goal |
+|-------|---------|------|
+| **Bootstrap** | Project created | Functional app, core features work, basic CI |
+| **Foundation** | Bootstrap gates met | Solid architecture, structured quality, test coverage |
+| **Production** | Foundation gates met | Enterprise-grade quality, full observability, security hardened |
 
-- ✅ Add: Structured logging (requestId, userId)
-- ✅ Add: Error envelope standard
-- ✅ Add: 3 E2E tests
-- ✅ Add: Ports & Adapters architecture
-- ⏭️ Skip: Metrics facade, circuit breakers
+### Quality Gate Matrix
 
-### Phase 3: Growth (1k+ DAU)
+| Dimension | Bootstrap | Foundation | Production |
+|-----------|-----------|------------|------------|
+| **Unit Tests** | Critical paths covered | ≥ 70% coverage | ≥ 90% coverage |
+| **E2E Tests** | 3 happy paths | + error paths | Full user journeys + a11y |
+| **Contract Tests** | Zod on all APIs | + edge cases | + backward compatibility |
+| **Integration Tests** | Manual | Critical paths automated | All external APIs |
+| **Observability** | Sentry + structured logs | + traceId + request correlation | + metrics + alerts + dashboards |
+| **Security** | RLS + secrets in env | + rate limiting + input validation | + CodeQL + security audit |
+| **Performance** | `vite build` passes | Core Web Vitals monitored | + Lighthouse CI enforced |
+| **Documentation** | README | + ADRs for key decisions | + runbooks + API docs |
+| **CI/CD** | lint, typecheck, build, test | + E2E + commitlint + security scan | + Lighthouse CI + CodeQL |
+| **Architecture** | Feature folders, Zod contracts | Ports & Adapters, error envelope | Circuit breakers, cache layer |
 
-- ✅ Add: Metrics (Prometheus or Sentry perf)
-- ✅ Add: Circuit breakers for external APIs
-- ✅ Add: Performance monitoring (Lighthouse CI)
-- ✅ Review: Migration triggers in Section 11
+### Phase Transition Rules
+
+1. **Bootstrap → Foundation:** All Bootstrap gates met. App is functional and deployed.
+2. **Foundation → Production:** All Foundation gates met. Architecture is clean and testable.
+3. Phases are not time-bound — with AI-powered development, Foundation can be reached within days.
+4. Core Invariants (Section 01) apply in ALL phases — they are never deferred.
 
 ---
 
@@ -1526,47 +1534,44 @@ const SITEMAP_CONFIG = {
 
 ### "Lean Today. Limitless Tomorrow."
 
-The **Consumer-Pro Knowledge Base v3.2** is a **strategic staging layer**.
-It allows you to build a consumer-grade product with production discipline, then evolve it into a SaaS-grade system when scale demands.
+The **Richi Development Framework v4.0** is a universal engineering standard.
+It enables enterprise-grade quality from day one — powered by AI-driven development, not team size.
 
-### What's Different in v3.2 (vs earlier versions)
+### What's Different in v4.0 (vs v3.x)
 
-| Aspect | Before (v1-v2) | Now (v3.2) |
+| Aspect | Before (v3.x) | Now (v4.0) |
 |--------|----------------|------------|
-| **Hosting** | Lovable (Preview + Publish) | Vercel (Preview on PR, Production on main) |
-| **Supabase** | Lovable-managed | Self-provisioned Supabase Cloud |
-| **Framework** | Vite + React | Vite + React (unchanged, Vercel deploys SPA) |
-| **Offline Mode** | Dogmatic ("always") | Pragmatic (decision tree) |
-| **Platforms** | Web only | Web + Mobile + Backend |
-| **SEO** | Not covered | Complete framework |
-| **Distribution** | Manual KB upload | Automatic via sync-dotclaude.yml |
+| **Name** | RDF Knowledge Base | Richi Development Framework (RDF) |
+| **Scope** | Consumer apps only | All project types (consumer, SaaS, internal) |
+| **Quality Model** | Static requirements | Phase-dependent Quality Gate Matrix |
+| **Phase Triggers** | DAU-based (500, 1k, 10k) | Structure-based (Bootstrap → Foundation → Production) |
+| **Testing** | Fixed "≥ 60%" | Progressive (critical paths → 70% → 90%) |
+| **Sections 08/11/12/13** | Four separate sections | Consolidated into Quality Gate Matrix |
 
 ### Quick Reference
 
 | Need | Section |
 |------|---------|
+| Quality requirements per phase | 13 — Quality Gate Matrix |
 | API contracts | 03 — Contracts & DTOs |
 | Should I implement offline? | 05 — PWA Decision Tree |
 | Deployment & Vercel setup | 23 — Claude Code Integration & Deployment |
-| Migrate from Lovable | 23.1 — Lovable's Role (Optional Prototyping) |
 | Multi-platform strategy | 16 — Multi-Platform Architecture |
-| Translation setup | 17 — i18n Standards |
 | Edge function structure | 19 — Edge Function Patterns |
 | SEO implementation | 20 — SEO Standards |
-| When to migrate to SaaS | 11 — Migration Playbook |
+| When to scale infrastructure | 11 — Scaling Playbook |
 
 ### Philosophy
 
 > **Richi AI** defines the philosophy of wisdom and structure.
-> **Consumer-Pro KB v3.2** operationalizes it for creators who build small but think big.
-> **Vercel** deploys the frontend. **Supabase Cloud** powers the backend.
-> **Claude Code** implements. **Cursor** builds the mobile apps.
+> **RDF v4.0** operationalizes it — enterprise quality without enterprise overhead.
+> **Claude Code** implements. **Vercel** deploys. **Supabase Cloud** powers the backend.
 
 ## 22 — Docs Execution System (Core / Generation / Growth / Runtime)
 
 **Version:** 1.0  
 **Status:** ACTIVE  
-**Authority:** CONSUMER-PRO ROOT  
+**Authority:** RDF ROOT
 
 ---
 
@@ -1574,7 +1579,7 @@ It allows you to build a consumer-grade product with production discipline, then
 
 This section defines how execution contracts under `.claude/` are organized, interpreted, and enforced.
 
-This Knowledge Base (`consumer-pro-kb.md`) is the root authority.
+This Knowledge Base (`rdf.md`) is the root authority.
 
 All other docs are subordinate execution contracts that must be applied consistently to build, integrate, grow, and operate projects.
 
@@ -1595,7 +1600,7 @@ All contracts are stored in `.claude/` and organized by layer:
 .claude/
   rules/
     core/
-      consumer-pro-kb.md              ← ROOT AUTHORITY
+      rdf.md              ← ROOT AUTHORITY
     runtime-contract.md               ← DEPLOYMENT GATE / RUNTIME AUTHORITY
 
   ref/
@@ -1630,7 +1635,7 @@ on-demand prompts for specific tasks and do not override rules in
 
 ### 22.2 Authority Hierarchy (Highest → Lowest)
 
-1. `consumer-pro-kb.md` (**ROOT AUTHORITY**)
+1. `rdf.md` (**ROOT AUTHORITY**)
 2. `runtime-contract.md` (**RUNTIME AUTHORITY / DEPLOYMENT GATE**)
 3. Core execution contracts (`ideation-to-product.md`, `lifecycle.md`)
 4. Generation contracts (`ref/generation/*`)
@@ -1693,12 +1698,12 @@ This defines the practical execution order.
 
 **Required:**
 
-- `.claude/rules/core/consumer-pro-kb.md`
+- `.claude/rules/core/rdf.md`
 - `.claude/ref/generation/*` (as applicable)
 
 Implementation must follow:
 
-- Consumer-Pro invariants (contracts, error envelope, typed config, ports/adapters)
+- Core invariants (contracts, error envelope, typed config, ports/adapters)
 - required UI/UX structure
 - required legal page structure (if public)
 - required integration primitives for Growth if enabled
@@ -1751,7 +1756,7 @@ Implementation must follow:
 
 When building or iterating:
 
-- Always include `consumer-pro-kb.md`
+- Always include `rdf.md`
 - Include only the contracts relevant to the current phase
 - Always re-check runtime contract before deployment
 
@@ -1817,7 +1822,7 @@ It is maintained in the **orchestrator** repo and distributed automatically.
 
 | Directory | Content |
 |-----------|---------|
-| `rules/core/consumer-pro-kb.md` | This Knowledge Base (ROOT AUTHORITY) |
+| `rules/core/rdf.md` | This Knowledge Base (ROOT AUTHORITY) |
 | `rules/runtime-contract.md` | Deployment gate |
 | `ref/` | On-demand reference docs (generation, growth, mobile) |
 | `agents/` | Automated sub-agents |
@@ -1876,7 +1881,7 @@ to the production stack via `/migrate-from-lovable`.
 | **Supabase Cloud** | Backend (Auth, DB, Edge Functions, Storage) | All projects |
 
 **This Knowledge Base** is the single source of truth, stored at
-`.claude/rules/core/consumer-pro-kb.md` and distributed via the orchestrator.
+`.claude/rules/core/rdf.md` and distributed via the orchestrator.
 
 ---
 
@@ -1912,7 +1917,7 @@ Claude Code is the sole implementation tool for all projects.
 
 **Claude Code reads from `.claude/`:**
 - `CLAUDE.md` — project instructions and architecture overview
-- `rules/core/consumer-pro-kb.md` — this Knowledge Base
+- `rules/core/rdf.md` — this Knowledge Base
 - `rules/` — all execution contracts (lifecycle, runtime, generation, growth)
 - `agents/` — automated sub-agents (code-reviewer, qa, research)
 - `skills/` — slash commands (e.g. `/update-dotclaude`, `/migrate-from-lovable`)
@@ -1928,7 +1933,7 @@ IMPLEMENTATION_SPEC:
 
 feature: [feature name]
 phase: [Phase X from lifecycle.md]
-consumer_pro_contracts: [which rules/ files apply]
+rdf_contracts: [which rules/ files apply]
 
 description:
 [What needs to be implemented — user-facing behavior]
@@ -1966,7 +1971,7 @@ The `.claude/` folder in the repository root is Claude Code's configuration laye
 │   ├── migrate-from-lovable/    # Lovable → Vercel + Supabase Cloud migration
 │   └── scaffold-project/        # New project with Vite + React + Vercel
 ├── rules/                       # Contracts & authority
-│   ├── core/consumer-pro-kb.md  # This Knowledge Base (ROOT AUTHORITY)
+│   ├── core/rdf.md  # This Knowledge Base (ROOT AUTHORITY)
 │   ├── runtime-contract.md      # Deployment gate
 │   └── index.md                 # Reference map for all ref/ files
 └── ref/                         # On-demand reference docs
@@ -2082,7 +2087,7 @@ This Knowledge Base is stored in one location and distributed automatically:
 | `orchestrator.richi.solutions/.claude/` | `sync-dotclaude.yml` workflow |
 
 When the KB is updated:
-1. Update `.claude/rules/core/consumer-pro-kb.md` in the orchestrator repo
+1. Update `.claude/rules/core/rdf.md` in the orchestrator repo
 2. Push to `main` — `sync-dotclaude.yml` distributes to all `*.richi.solutions` repos
 3. For local repos: run `bash scripts/sync-local.sh`
 
@@ -2090,7 +2095,17 @@ When the KB is updated:
 
 ## Changelog
 
-### v3.2 (2026-03-11)
+### v4.0 (2026-03-20)
+
+- **BREAKING:** Renamed from "Consumer-Pro Knowledge Base" to "Richi Development Framework (RDF)"
+- **BREAKING:** Replaced static quality requirements with phase-dependent Quality Gate Matrix (Section 13)
+- Consolidated Sections 08 (Testing), 11 (Migration), 12 (Delta Map), 13 (Priority Matrix) into phase-aware versions
+- Phase triggers changed from DAU-based to structure-based (Bootstrap → Foundation → Production)
+- Section 07 (Observability) now phase-dependent
+- Section 09 renamed from "CI/CD-Lite" to "CI/CD"
+- Updated all cross-references and authority labels
+
+### v3.2 (2026-03-11) — superseded by v4.0
 
 - 🔄 **BREAKING:** Switched from Lovable hosting to Vercel for all frontend deployment
 - 🔄 **BREAKING:** Switched from Lovable-managed Supabase to self-provisioned Supabase Cloud
@@ -2142,4 +2157,4 @@ When the KB is updated:
 
 ### v1.0 (Initial)
 
-- Initial Consumer-Pro Knowledge Base
+- Initial RDF Knowledge Base

@@ -2,8 +2,8 @@
 
 **Version:** 1.0
 **Status:** ACTIVE
-**Authority:** CONSUMER-PRO GENERATION CONTRACT
-**Depends on:** `rules/core/consumer-pro-kb.md` (ROOT AUTHORITY)
+**Authority:** RDF GENERATION CONTRACT
+**Depends on:** `rules/core/rdf.md` (ROOT AUTHORITY)
 
 ---
 
@@ -194,7 +194,7 @@ export type CheckoutInput = z.infer<typeof CheckoutInputSchema>;
 
 ## 4 --- Edge Function Patterns
 
-All webhook handlers follow the Consumer-Pro Edge Function pattern
+All webhook handlers follow the RDF Edge Function pattern
 (see KB Section 19) with additional signature verification.
 
 ### 4.1 Stripe Webhook Handler

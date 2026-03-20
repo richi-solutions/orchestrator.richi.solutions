@@ -60,7 +60,7 @@ Report percentage of documented vs undocumented exports.
 ### 7. .claude/CLAUDE.md Accuracy
 
 - Does `.claude/CLAUDE.md` reference the correct tech stack?
-- Does it reference the correct Consumer-Pro KB version (currently v3.2)?
+- Does it reference the correct RDF version (currently v4.0)?
 - Note: Do NOT modify `.claude/` — only report discrepancies
 
 ## Output Format

@@ -15,7 +15,7 @@ You are a security reviewer that audits a repository for common vulnerabilities 
 Focus on issues that are:
 - Exploitable or high-impact
 - Detectable via static analysis or file inspection
-- Relevant to the Consumer-Pro stack (React, Supabase, Vercel, Edge Functions)
+- Relevant to the RDF stack (React, Supabase, Vercel, Edge Functions)
 
 ## Review Checklist
 

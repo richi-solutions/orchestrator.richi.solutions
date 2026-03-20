@@ -1,11 +1,11 @@
-## Richi AI — React Native Knowledge Base (Consumer-Pro Compatible) v1.0
+## Richi AI — React Native Knowledge Base (RDF Compatible) v1.0
 
 **Codename:** One Language. Three Surfaces. Contracts as Spine.
 
 **Version:** 1.0
 **Status:** ACTIVE
 
-**Purpose:** Define how to build and maintain a React Native mobile client (iOS + Android) using Expo that integrates with a Consumer-Pro compliant backend/web app running on Vercel + Supabase Cloud (React/TypeScript). Designed for the dual-repo strategy where web and mobile are separate repositories sharing contracts via the orchestrator.
+**Purpose:** Define how to build and maintain a React Native mobile client (iOS + Android) using Expo that integrates with an RDF compliant backend/web app running on Vercel + Supabase Cloud (React/TypeScript). Designed for the dual-repo strategy where web and mobile are separate repositories sharing contracts via the orchestrator.
 
 **Audience:** Solo builders and small teams already using React + TypeScript for web.
 
@@ -42,7 +42,7 @@
 
 ### Decision rationale
 
-The Richi AI Consumer-Pro stack is React + TypeScript + Vite + Tailwind + Supabase + Zod. React Native with Expo is the natural mobile choice because:
+The Richi AI RDF stack is React + TypeScript + Vite + Tailwind + Supabase + Zod. React Native with Expo is the natural mobile choice because:
 
 - **Same language and type system** — TypeScript everywhere, no Dart onboarding
 - **Shared business logic** — Zod schemas, error envelope, API client, hooks, and types run on both web and mobile without modification
@@ -838,7 +838,7 @@ eas build:configure
 ### v1.0 (2026-03-16)
 
 - Initial React Native Knowledge Base
-- Based on Consumer-Pro KB v3.2 principles
+- Based on RDF v3.2 principles
 - Designed for dual-repo strategy with shared contracts via orchestrator
 - Replaces Flutter KB as default mobile recommendation
 - Expo SDK 53+ with New Architecture as baseline

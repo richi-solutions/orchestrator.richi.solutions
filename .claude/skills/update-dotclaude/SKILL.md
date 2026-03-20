@@ -61,7 +61,7 @@ git push
 
 - `.claude/CLAUDE.md` — universal project instructions
 - `.claude/agents/` — agent definitions
-- `.claude/rules/` — framework rules (Consumer-Pro KB, Runtime Contract)
+- `.claude/rules/` — framework rules (RDF, Runtime Contract)
 - `.claude/ref/` — reference docs (loaded on demand)
 - `.claude/skills/` — slash commands
 - `.claude/sync/` — config files (mirror layout → repo root)
