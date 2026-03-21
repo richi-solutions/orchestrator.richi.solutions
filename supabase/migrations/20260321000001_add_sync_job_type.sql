@@ -3,4 +3,4 @@
 
 ALTER TABLE job_runs DROP CONSTRAINT IF EXISTS job_runs_job_type_check;
 ALTER TABLE job_runs ADD CONSTRAINT job_runs_job_type_check
-  CHECK (job_type IN ('sweep', 'aggregate', 'chain', 'provision', 'sync'));
+  CHECK (job_type IN ('sweep', 'aggregate', 'chain', 'provision', 'sync', 'agentic'));
