@@ -12,7 +12,7 @@ name: Orchestrate Documentation Update
 
 on:
   schedule:
-    - cron: "0 8 * * 3" # Weekly Wednesday 08:00 UTC (3h after sync-dotclaude)
+    - cron: "0 5 * * 1" # Weekly Monday 05:00 UTC (after sync-dotclaude daily 05:00)
   workflow_dispatch:
 
 jobs:

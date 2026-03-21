@@ -35,6 +35,8 @@ const mockStore: StorePort = {
   listJobRuns: vi.fn(),
   saveCommitSummary: vi.fn(),
   saveSocialContent: vi.fn(),
+  upsertProjectProfile: vi.fn(),
+  listProjectProfiles: vi.fn(),
 };
 
 const jobDef: JobDefinition = {

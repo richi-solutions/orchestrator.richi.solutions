@@ -17,6 +17,7 @@ import { SweepHandler } from './executor/handlers/sweep.handler';
 import { AggregateHandler } from './executor/handlers/aggregate.handler';
 import { ChainHandler } from './executor/handlers/chain.handler';
 import { ProvisionHandler } from './executor/handlers/provision.handler';
+import { ProfileSyncHandler } from './executor/handlers/profile-sync.handler';
 
 // Scheduler
 import { Scheduler } from './scheduler/scheduler';
@@ -42,9 +43,10 @@ const sweepHandler = new SweepHandler(discovery, claude, agentsDir);
 const aggregateHandler = new AggregateHandler(discovery, github, claude, store, env.GITHUB_ORG, agentsDir);
 const chainHandler = new ChainHandler(store, claude, agentsDir);
 const provisionHandler = new ProvisionHandler(discovery);
+const profileSyncHandler = new ProfileSyncHandler(discovery, github, store, env.GITHUB_ORG);
 
 // Instantiate executor
-const executor = new Executor(sweepHandler, aggregateHandler, chainHandler, provisionHandler);
+const executor = new Executor(sweepHandler, aggregateHandler, chainHandler, provisionHandler, profileSyncHandler);
 
 // Job execution result for trigger endpoint reporting
 export interface JobExecutionResult {

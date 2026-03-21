@@ -10,6 +10,27 @@
 import { Result } from '../lib/result';
 import { JobResult } from '../contracts/v1/job-result.schema';
 
+/** Input for upserting a project profile (README + metadata from project.yaml). */
+export interface ProjectProfileInput {
+  repoName: string;
+  readmeContent: string | null;
+  readmeSha: string | null;
+  tagline: string | null;
+  description: string | null;
+  techStack: string[];
+  demoVideoUrl: string | null;
+  logoUrl: string | null;
+  projectUrl: string | null;
+}
+
+/** Stored project profile as returned from the database. */
+export interface ProjectProfile extends ProjectProfileInput {
+  id: string;
+  lastSyncedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /** Input for persisting a daily commit summary. */
 export interface CommitSummaryInput {
   jobRunId: string;
@@ -58,4 +79,10 @@ export interface StorePort {
 
   /** Persists social content with its components and platform mappings. */
   saveSocialContent(input: SocialContentInput): Promise<Result<{ id: string }>>;
+
+  /** Upserts a project profile (insert or update on repo_name conflict). */
+  upsertProjectProfile(input: ProjectProfileInput): Promise<Result<{ id: string }>>;
+
+  /** Lists all project profiles, ordered by repo name. */
+  listProjectProfiles(): Promise<Result<ProjectProfile[]>>;
 }

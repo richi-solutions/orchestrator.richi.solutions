@@ -16,6 +16,7 @@ import { SweepHandler } from './handlers/sweep.handler';
 import { AggregateHandler } from './handlers/aggregate.handler';
 import { ChainHandler } from './handlers/chain.handler';
 import { ProvisionHandler } from './handlers/provision.handler';
+import { ProfileSyncHandler } from './handlers/profile-sync.handler';
 
 /** Dispatches jobs to the handler matching `jobDef.type`. */
 export class Executor implements ExecutorPort {
@@ -24,6 +25,7 @@ export class Executor implements ExecutorPort {
     private aggregate: AggregateHandler,
     private chain: ChainHandler,
     private provision: ProvisionHandler,
+    private profileSync: ProfileSyncHandler,
   ) {}
 
   async execute(jobName: string, jobDef: JobDefinition): Promise<Result<JobResult>> {
@@ -36,6 +38,8 @@ export class Executor implements ExecutorPort {
         return this.chain.run(jobName, jobDef);
       case 'provision':
         return this.provision.run(jobName, jobDef);
+      case 'sync':
+        return this.profileSync.run(jobName, jobDef);
       default:
         return failure('EXECUTOR_ERROR', `Unknown job type: ${jobDef.type}`, uuidv4());
     }

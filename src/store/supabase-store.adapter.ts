@@ -10,7 +10,7 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
-import { StorePort, CommitSummaryInput, SocialContentInput } from './store.port';
+import { StorePort, CommitSummaryInput, SocialContentInput, ProjectProfileInput, ProjectProfile } from './store.port';
 import { JobResult } from '../contracts/v1/job-result.schema';
 import { Result, success, failure } from '../lib/result';
 import { logger } from '../lib/logger';
@@ -219,6 +219,79 @@ export class SupabaseStoreAdapter implements StorePort {
     } catch (err) {
       logger.error('store_social_content_error', err, { traceId });
       return failure('STORE_ERROR', 'Failed to save social content', traceId);
+    }
+  }
+
+  async upsertProjectProfile(input: ProjectProfileInput): Promise<Result<{ id: string }>> {
+    const traceId = uuidv4();
+    try {
+      const now = new Date().toISOString();
+      const { data, error } = await this.client
+        .from('project_profiles')
+        .upsert(
+          {
+            repo_name: input.repoName,
+            readme_content: input.readmeContent,
+            readme_sha: input.readmeSha,
+            tagline: input.tagline,
+            description: input.description,
+            tech_stack: input.techStack,
+            demo_video_url: input.demoVideoUrl,
+            logo_url: input.logoUrl,
+            project_url: input.projectUrl,
+            last_synced_at: now,
+            updated_at: now,
+          },
+          { onConflict: 'repo_name' },
+        )
+        .select('id')
+        .single();
+
+      if (error) {
+        logger.error('store_profile_upsert_failed', error, { traceId, repoName: input.repoName });
+        return failure('STORE_ERROR', error.message, traceId);
+      }
+
+      logger.info('store_profile_upserted', { traceId, id: data.id, repoName: input.repoName });
+      return success({ id: data.id });
+    } catch (err) {
+      logger.error('store_profile_upsert_error', err, { traceId });
+      return failure('STORE_ERROR', 'Failed to upsert project profile', traceId);
+    }
+  }
+
+  async listProjectProfiles(): Promise<Result<ProjectProfile[]>> {
+    const traceId = uuidv4();
+    try {
+      const { data, error } = await this.client
+        .from('project_profiles')
+        .select('*')
+        .order('repo_name', { ascending: true });
+
+      if (error) {
+        return failure('STORE_ERROR', error.message, traceId);
+      }
+
+      const profiles: ProjectProfile[] = (data ?? []).map((row) => ({
+        id: row.id,
+        repoName: row.repo_name,
+        readmeContent: row.readme_content,
+        readmeSha: row.readme_sha,
+        tagline: row.tagline,
+        description: row.description,
+        techStack: row.tech_stack ?? [],
+        demoVideoUrl: row.demo_video_url,
+        logoUrl: row.logo_url,
+        projectUrl: row.project_url,
+        lastSyncedAt: row.last_synced_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+
+      return success(profiles);
+    } catch (err) {
+      logger.error('store_profiles_list_error', err, { traceId });
+      return failure('STORE_ERROR', 'Failed to list project profiles', traceId);
     }
   }
 }

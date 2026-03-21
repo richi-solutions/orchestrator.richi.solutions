@@ -118,9 +118,10 @@ The `.claude/` directory is managed centrally by the orchestrator and distribute
 | Workflow | Schedule | Purpose |
 |----------|----------|---------|
 | `sync-dotclaude.yml` | Daily 05:00 UTC | Distributes `.claude/` from orchestrator to all repos |
-| `orchestrate-docs.yml` | Wednesday 08:00 UTC | Runs documentation agent across all repos |
+| `orchestrate-docs.yml` | Monday 05:00 UTC | Runs documentation agent across all repos |
+| `orchestrate-cron.yml` (profile-sync) | Tuesday 05:00 UTC | Syncs README + project metadata to Supabase for n8n |
 
-Workflows are staggered so docs always runs **after** sync has completed (3h buffer).
+Workflows are staggered: sync runs daily at 05:00, docs runs Monday 05:00, profile-sync runs Tuesday 05:00 (24h buffer).
 
 ### Off-Limits for Agents and Manual Edits
 

@@ -24,6 +24,7 @@ on:
     - cron: "59 21 * * *"     # daily-commits       — Daily 21:59 UTC
     - cron: "59 22 * * *"     # commits-to-social   — Daily 22:59 UTC
     - cron: "0 6 * * *"       # testuser-sync       — Daily 06:00 UTC
+    - cron: "0 5 * * 2"       # profile-sync        — Weekly Tuesday 05:00 UTC
   workflow_dispatch:
     inputs:
       job_name:
@@ -37,6 +38,7 @@ on:
           - daily-commits
           - commits-to-social
           - testuser-sync
+          - profile-sync
 
 jobs:
   trigger:
@@ -57,6 +59,7 @@ jobs:
               "59 21 * * *")  echo "name=daily-commits"     >> "$GITHUB_OUTPUT" ;;
               "59 22 * * *")  echo "name=commits-to-social" >> "$GITHUB_OUTPUT" ;;
               "0 6 * * *")    echo "name=testuser-sync"     >> "$GITHUB_OUTPUT" ;;
+              "0 5 * * 2")    echo "name=profile-sync"      >> "$GITHUB_OUTPUT" ;;
               *)
                 echo "::error::Unknown cron expression: $CRON"
                 exit 1

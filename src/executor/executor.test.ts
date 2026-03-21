@@ -18,13 +18,14 @@ const mockSweep = { run: vi.fn().mockResolvedValue(success(mockJobResult)) };
 const mockAggregate = { run: vi.fn().mockResolvedValue(success(mockJobResult)) };
 const mockChain = { run: vi.fn().mockResolvedValue(success(mockJobResult)) };
 const mockProvision = { run: vi.fn().mockResolvedValue(success(mockJobResult)) };
+const mockProfileSync = { run: vi.fn().mockResolvedValue(success(mockJobResult)) };
 
 describe('Executor', () => {
   let executor: Executor;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    executor = new Executor(mockSweep as any, mockAggregate as any, mockChain as any, mockProvision as any);
+    executor = new Executor(mockSweep as any, mockAggregate as any, mockChain as any, mockProvision as any, mockProfileSync as any);
   });
 
   it('routes sweep jobs to SweepHandler', async () => {
@@ -49,6 +50,12 @@ describe('Executor', () => {
     const def = { cron: '0 0 * * *', type: 'provision' as const, targets: 'all' as const, timeout_ms: 120_000 };
     await executor.execute('test-prov', def);
     expect(mockProvision.run).toHaveBeenCalledWith('test-prov', def);
+  });
+
+  it('routes sync jobs to ProfileSyncHandler', async () => {
+    const def = { cron: '0 0 * * *', type: 'sync' as const, targets: 'all' as const, timeout_ms: 120_000 };
+    await executor.execute('test-sync', def);
+    expect(mockProfileSync.run).toHaveBeenCalledWith('test-sync', def);
   });
 
   it('returns failure for unknown job type', async () => {

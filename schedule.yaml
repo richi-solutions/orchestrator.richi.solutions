@@ -39,3 +39,8 @@ jobs:
     targets:
       - has_testusers: true
     timeout_ms: 180000
+
+  profile-sync:
+    cron: "0 5 * * 2"          # Weekly Tuesday 05:00 UTC (24h after docs update Mon 05:00)
+    type: sync
+    timeout_ms: 180000

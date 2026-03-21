@@ -10,7 +10,7 @@
 import { z } from 'zod';
 
 /** Supported job execution types. */
-export const JobTypeSchema = z.enum(['sweep', 'aggregate', 'chain', 'provision']);
+export const JobTypeSchema = z.enum(['sweep', 'aggregate', 'chain', 'provision', 'sync']);
 
 export const TargetFilterSchema = z.record(z.string(), z.union([z.boolean(), z.string()]));
 
