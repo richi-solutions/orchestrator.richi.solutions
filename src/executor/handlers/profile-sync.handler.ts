@@ -33,7 +33,8 @@ export class ProfileSyncHandler {
     const reposResult = await this.discovery.discoverRepos();
     if (!reposResult.ok) return reposResult;
 
-    const repos = reposResult.data;
+    // Exclude mobile app repos (*.app.richi.solutions) — only web versions are synced
+    const repos = reposResult.data.filter((r) => !r.name.includes('.app.richi.solutions'));
     const results: TargetResult[] = [];
 
     logger.info('profile_sync_start', { traceId, jobName, repoCount: repos.length });
