@@ -2,7 +2,7 @@
 
 **"Lean Today. Limitless Tomorrow."**
 
-**Version 4.0** — React + Vite + Vercel + Supabase Cloud patterns for scalable applications
+**Version 4.1** — Multi-platform patterns for Web (React + Vite + Vercel) and Mobile (React Native / Flutter) with Supabase Cloud
 
 ---
 
@@ -10,6 +10,7 @@
 
 ```
 00 — Purpose
+00b — Repository Naming Convention & Platform Mapping
 01 — Core Invariants
 02 — Architecture Doctrine
 03 — Contracts & DTOs
@@ -62,7 +63,65 @@ It enables a solo founder with AI-powered development (Claude Code) to achieve e
 | **Phase triggers** are structure-based, not DAU-based | AI-powered development enables enterprise quality without team scaling |
 | **Sections 08, 11, 12, 13 consolidated** | Reduced redundancy, single Quality Gate Matrix as reference |
 
-Previous: v3.2 added Vercel hosting, self-provisioned Supabase Cloud, Lovable demotion. v2.0 added Multi-Platform, i18n, SEO, Edge Functions.
+Previous: v4.0 added Quality Gate Matrix, phase-based triggers. v3.2 added Vercel hosting, self-provisioned Supabase Cloud. v2.0 added Multi-Platform, i18n, SEO, Edge Functions.
+
+---
+
+## 00b — Repository Naming Convention & Platform Mapping
+
+All Richi projects follow a strict naming convention that determines the platform and tech stack.
+
+### Naming Pattern
+
+| Pattern | Platform | Tech Stack | Deployment |
+|---------|----------|------------|------------|
+| `xyz.richi.solutions` | **Web** | React + Vite + TypeScript + Tailwind + shadcn/ui | Vercel |
+| `xyz.app.richi.solutions` | **Mobile** | React Native (preferred) or Flutter + Supabase | App Store / Google Play |
+| `orchestrator.richi.solutions` | **Backend / Orchestration** | Node.js + Supabase Edge Functions | Railway / Supabase |
+
+### Examples
+
+| Repository | Platform | Stack |
+|------------|----------|-------|
+| `moviemind.richi.solutions` | Web | React + Vite + Vercel |
+| `moviemind.app.richi.solutions` | Mobile | Flutter + Supabase |
+| `padel-league.richi.solutions` | Web | React + Vite + Vercel |
+| `padel-league.app.richi.solutions` | Mobile | React Native + Expo |
+
+### Mobile Framework Selection
+
+**React Native (via Expo) is the preferred default** for new mobile projects. It maximizes code familiarity with the web stack (TypeScript, React patterns, shared contracts).
+
+However, the mobile framework is **not fixed** — projects may use Flutter or other frameworks when justified. The actual framework is determined per project and documented in the project's `CLAUDE.md`.
+
+| Framework | When to use |
+|-----------|-------------|
+| **React Native + Expo** (preferred) | Default for new mobile apps. Best when web counterpart exists and code sharing is valuable. |
+| **Flutter** | When project already uses Flutter, or when platform-native performance/UI fidelity is critical. |
+
+### Implications for `.claude/` Distribution
+
+The orchestrator distributes platform-aware configuration:
+
+- **Web repos** (`xyz.richi.solutions`) receive `CLAUDE.md` with web tech stack (React + Vite + Vercel)
+- **Mobile repos** (`xyz.app.richi.solutions`) receive `CLAUDE.mobile.md` → `CLAUDE.md` with mobile tech stack
+- **Shared content** (rules, agents, skills, ref) is identical across all platforms
+- The sync scripts (`sync-local.sh`, `sync-dotclaude.yml`) detect the repo name pattern and select the correct template
+
+### Web ↔ Mobile Pairing
+
+A product can have both a web and a mobile repo sharing the same Supabase backend:
+
+```
+moviemind.richi.solutions       → Web frontend (React + Vercel)
+moviemind.app.richi.solutions   → Mobile app (Flutter)
+                                     ↕ shared Supabase backend
+```
+
+Both repos share:
+- The same Supabase project (Auth, Database, Edge Functions, Storage)
+- The same API contracts (distributed from orchestrator)
+- The same `.claude/` rules and skills
 
 ---
 
@@ -875,6 +934,8 @@ Each platform surface has its own repository. Shared code (contracts, types, err
 
 ### Repository Strategy
 
+Repository names encode the platform (see Section 00b):
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    Shared Backend                    │
@@ -888,14 +949,14 @@ Each platform surface has its own repository. Shared code (contracts, types, err
        ┌────────────────┼────────────────┐
        │                │                │
        ▼                ▼                ▼
-┌─────────────┐  ┌─────────────┐  ┌─────────────┐
-│  Web App    │  │ Mobile App  │  │ Admin App   │
-│  (React)    │  │(React Native│  │ (React)     │
-│  Vercel     │  │  + Expo)    │  │  Vercel     │
-│ Repository: │  │ EAS Build   │  │ Repository: │
-│ project-web │  │ Repository: │  │ project-adm │
-│             │  │ project-app │  │             │
-└─────────────┘  └─────────────┘  └─────────────┘
+┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+│  Web App     │ │  Mobile App  │ │  Admin App   │
+│  (React)     │ │ (RN / Flutter│ │  (React)     │
+│  Vercel      │ │  App Store)  │ │  Vercel      │
+│              │ │              │ │              │
+│ xyz.richi.   │ │ xyz.app.richi│ │ xyz-admin.   │
+│ solutions    │ │ .solutions   │ │ richi.solns  │
+└──────────────┘ └──────────────┘ └──────────────┘
 
        ▲                ▲                ▲
        └────────────────┼────────────────┘
@@ -906,6 +967,8 @@ Each platform surface has its own repository. Shared code (contracts, types, err
          │                              │
          │  packages/contracts/  ←────── Zod schemas, types,
          │  .claude/             ←────── rules, skills, agents
+         │  CLAUDE.md            ←────── web template
+         │  CLAUDE.mobile.md     ←────── mobile template
          └─────────────────────────────┘
 ```
 
@@ -939,8 +1002,12 @@ Each platform surface has its own repository. Shared code (contracts, types, err
 | Platform | Architecture | Framework | Rationale |
 |----------|--------------|-----------|-----------|
 | **Web (React + Vite)** | Hexagonal (Ports & Adapters) | React + Vite + Tailwind | Full testability, backend swap |
-| **Mobile (React Native)** | Feature-first (mirroring web) | Expo + NativeWind + TanStack Query | Same patterns as web, max code familiarity |
+| **Mobile (React Native)** | Feature-first (mirroring web) | Expo + NativeWind + TanStack Query | Preferred default — same patterns as web, max code familiarity |
+| **Mobile (Flutter)** | Feature-first | Flutter + Dart + Riverpod | When project already uses Flutter or native perf is critical |
 | **Backend (Edge)** | Layered + Result Type | Supabase Edge Functions | Simplicity, stateless |
+
+> **Note:** React Native is the preferred default for new mobile projects. Flutter is supported
+> when already in use or when justified per project. See Section 00b for selection criteria.
 
 ### Web Architecture (Hexagonal)
 
@@ -953,7 +1020,7 @@ src/
   contracts/       # Synced from orchestrator (read-only)
 ```
 
-### Mobile Architecture (Feature-first)
+### Mobile Architecture — React Native (Feature-first)
 
 ```
 src/
@@ -965,6 +1032,26 @@ src/
 ```
 
 Full reference: `.claude/ref/mobile/react-native-kb.md`
+
+### Mobile Architecture — Flutter (Feature-first)
+
+```
+lib/
+  core/            # App-wide utilities, theme, constants
+  features/
+    [feature]/
+      ui/          # Screens & widgets
+      service/     # Business logic & API calls
+      model/       # Data models & state
+  shared/          # Shared widgets & design system
+  l10n/            # Localization (ARB files)
+assets/
+  translations/    # JSON translation files
+  images/
+test/
+```
+
+Full reference: `.claude/ref/mobile/flutter-kb.md`
 
 ### Backend Architecture (Layered)
 
@@ -2095,7 +2182,16 @@ When the KB is updated:
 
 ## Changelog
 
-### v4.0 (2026-03-20)
+### v4.1 (2026-03-27)
+
+- Added Section 00b: Repository Naming Convention & Platform Mapping
+- `*.app.richi.solutions` repos are now recognized as mobile apps
+- React Native is the preferred default for mobile; Flutter is supported when already in use
+- Updated Section 16: Multi-Platform Architecture with Flutter folder blueprint and updated diagram
+- Orchestrator sync scripts now distribute platform-aware `CLAUDE.md` (web vs mobile template)
+- Added `CLAUDE.mobile.md` template for mobile repos
+
+### v4.0 (2026-03-20) — superseded by v4.1
 
 - **BREAKING:** Renamed from "Consumer-Pro Knowledge Base" to "Richi Development Framework (RDF)"
 - **BREAKING:** Replaced static quality requirements with phase-dependent Quality Gate Matrix (Section 13)

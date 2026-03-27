@@ -43,12 +43,15 @@ if [ -d "$TEMPLATE_DIR" ]; then
     fi
   done
 
-  # Sync settings.json and CLAUDE.md
+  # Sync settings.json, CLAUDE.md, and CLAUDE.mobile.md
   if [ -f "$SOURCE/settings.json" ]; then
     cp "$SOURCE/settings.json" "$TEMPLATE_DIR/settings.json"
   fi
   if [ -f "$SOURCE/CLAUDE.md" ]; then
     cp "$SOURCE/CLAUDE.md" "$TEMPLATE_DIR/CLAUDE.md"
+  fi
+  if [ -f "$SOURCE/CLAUDE.mobile.md" ]; then
+    cp "$SOURCE/CLAUDE.mobile.md" "$TEMPLATE_DIR/CLAUDE.mobile.md"
   fi
 
   # Remove old security/ directory
@@ -95,12 +98,21 @@ for repo_dir in "$PARENT_DIR"/*.richi.solutions; do
     fi
   done
 
-  # Sync settings.json and CLAUDE.md
+  # Sync settings.json
   if [ -f "$SOURCE/settings.json" ]; then
     cp "$SOURCE/settings.json" "$repo_dir/.claude/settings.json"
   fi
-  if [ -f "$SOURCE/CLAUDE.md" ]; then
-    cp "$SOURCE/CLAUDE.md" "$repo_dir/.claude/CLAUDE.md"
+
+  # Platform-aware CLAUDE.md: *.app.richi.solutions → mobile template
+  if [[ "$repo_name" == *.app.richi.solutions ]]; then
+    if [ -f "$SOURCE/CLAUDE.mobile.md" ]; then
+      cp "$SOURCE/CLAUDE.mobile.md" "$repo_dir/.claude/CLAUDE.md"
+      echo "  Using mobile template (CLAUDE.mobile.md)"
+    fi
+  else
+    if [ -f "$SOURCE/CLAUDE.md" ]; then
+      cp "$SOURCE/CLAUDE.md" "$repo_dir/.claude/CLAUDE.md"
+    fi
   fi
 
   # Remove old security/ directory if it still exists

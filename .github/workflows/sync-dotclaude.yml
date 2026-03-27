@@ -105,10 +105,19 @@ jobs:
             # (rsync deletes removed files, respects exclusions)
             rsync -a --delete \
               --exclude='CLAUDE.local.md' \
+              --exclude='CLAUDE.mobile.md' \
               --exclude='settings.local.json' \
               --exclude='.mcp.json' \
               --exclude='reviews/' \
               "$SOURCE/" .claude/
+
+            # Platform-aware CLAUDE.md: *.app.richi.solutions → mobile template
+            if [[ "$REPO_NAME" == *.app.richi.solutions ]]; then
+              if [ -f "$SOURCE/CLAUDE.mobile.md" ]; then
+                cp "$SOURCE/CLAUDE.mobile.md" .claude/CLAUDE.md
+                echo "Using mobile template (CLAUDE.mobile.md) for $REPO_NAME"
+              fi
+            fi
 
             # Copy config files from sync/ to repo root
             if [ -d ".claude/sync" ]; then
