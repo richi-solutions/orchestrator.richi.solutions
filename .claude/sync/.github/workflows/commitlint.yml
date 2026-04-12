@@ -21,7 +21,10 @@ jobs:
           node-version: "20"
 
       - name: Install commitlint
-        run: npm install --no-save @commitlint/cli@19 @commitlint/config-conventional@19
+        # --legacy-peer-deps is required because some project repos (mobile
+        # apps with React 19 + radix-ui + vaul) have peer-dep conflicts that
+        # would otherwise block the --no-save install of commitlint itself.
+        run: npm install --no-save --legacy-peer-deps @commitlint/cli@19 @commitlint/config-conventional@19
 
       - name: Validate PR title
         env:

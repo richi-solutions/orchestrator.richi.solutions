@@ -17,6 +17,9 @@ permissions:
   contents: read
   security-events: write
   issues: write
+  # Required by gitleaks-action@v2 — it calls GET /repos/.../pulls/N/commits
+  # to scope the scan to PR commits and 403s without this permission.
+  pull-requests: read
 
 jobs:
   gitleaks:
