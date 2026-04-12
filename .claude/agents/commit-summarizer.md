@@ -57,7 +57,9 @@ Generate a structured daily summary in this format:
 
 - Be concise — one line per notable commit, not a full description
 - Group related commits (e.g., "3 commits for auth refactoring")
+- **Group development fixes with their parent feature.** A fix during feature development is iteration progress, not a bug report. Read the commit body for context (e.g., "Part of feat/..." means development, not production incident).
 - Highlight breaking changes, security fixes, and new features
 - Use Conventional Commit prefixes to categorize (feat, fix, chore, docs, refactor)
 - If zero commits across all repos, output a short "No activity" summary
+- **Frame the narrative as "building and shipping", not "fixing problems."** This summary feeds into social media content downstream.
 - Do not editorialize — report what happened, not what should happen

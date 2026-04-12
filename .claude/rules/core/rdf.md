@@ -651,18 +651,24 @@ the dotclaude subtree (`/update-dotclaude`).
 
 ### Conventional Commits
 
-Enforced via commitlint. **Every commit MUST include a body** describing WHAT was changed and WHY.
+Enforced via commitlint. **Every commit MUST include a body** describing WHAT was changed, WHY, and in what development context.
+
+Commit bodies are consumed downstream by the `commit-summarizer` agent (daily digests) and `social-media-writer` agent (social media posts). Without development context, bug fixes during feature development read like production incidents.
 
 ```
 feat: add rating dialog
 
 Implement star-based rating dialog that appears after movie ends.
-Ratings are stored in Supabase and used by the recommendation engine.
+Ratings are stored in Supabase and used by the recommendation
+engine. This is the core interaction for the new engagement
+tracking feature.
 
 fix: resolve infinite loop in recommendations
 
-The similarity loop did not exclude already-rated movies, causing
-infinite re-renders when the user had rated all items in a cluster.
+Part of the new recommendation engine (feat/smart-recs). During
+development, the similarity loop did not exclude already-rated
+movies, causing infinite re-renders when the user had rated all
+items in a cluster. Added exclusion filter to stabilize iteration.
 
 docs: update API documentation
 chore: upgrade dependencies
@@ -672,8 +678,9 @@ chore: upgrade dependencies
 - **Subject:** Conventional Commit prefix, max 72 chars, imperative mood
 - **Body:** MANDATORY for `feat`, `fix`, `refactor`, `test` — describes what changed and why
 - **Body:** Optional for `chore`, `docs` (when the subject is self-explanatory)
+- **Body:** Should be 200–500 characters. Enough context for someone reading the log without the code.
+- **Body MUST include development context:** explain whether this is part of a new feature, a refactor, or an iteration — not just the technical change.
 - Blank line between subject and body
-- Body lines max 100 chars
 
 ### Rollback Runbook
 

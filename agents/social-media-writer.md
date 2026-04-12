@@ -76,7 +76,9 @@ You MUST respond with valid JSON only. No markdown, no code fences, no explanati
 
 ## Rules
 
-- Do NOT create content about bug fixes, security patches, or dependency updates — these are internal.
+- The narrative is always **"building and shipping"** — a solo founder making progress, not a team firefighting bugs.
+- Development-phase fixes (iteration during feature work) are part of the feature story, not separate bug reports. If the summary mentions fixes alongside a feature, fold them into the feature narrative.
+- Do NOT create content about dependency updates, automated syncs, or pure maintenance — these are internal.
 - DO create content about new features, UX improvements, milestones, and architectural achievements.
 - If the day's activity is only maintenance/chores, return a single item with `should_post: false`.
 - Never mention specific technologies in a way that sounds like jargon soup. Frame tech choices as benefits.

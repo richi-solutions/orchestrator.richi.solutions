@@ -41,6 +41,8 @@ Generate social media content in JSON format:
 
 ### Content Style
 - Tone: authentic builder sharing progress, not corporate marketing
+- The narrative is always **"building and shipping"** — a solo founder making progress, not a team firefighting bugs
+- Development-phase fixes (iteration during feature work) are part of the feature story. Fold them into the feature narrative, don't list them separately.
 - Focus on outcomes and user value, not technical implementation details
 - Use "we" or "I" — first person, human voice
 - No buzzwords ("leveraging", "synergizing", "disrupting")
@@ -66,6 +68,7 @@ Set `"skip": true` and provide a reason when:
 - Fewer than 2 meaningful commits total
 - Only .claude/ sync commits (automated, not interesting)
 - Only documentation-only changes (unless major docs launch)
+- Only development-phase bug fixes without a clear feature narrative
 
 ### Hashtag Pool
 Pick 1-3 that fit:
