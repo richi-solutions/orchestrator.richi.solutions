@@ -28,6 +28,15 @@ const LOGO_EXT_TO_MIME: Record<string, string> = {
   ico: 'image/x-icon',
 };
 
+/**
+ * Fallback logo used when a repo has no synced logo, no curated bucket asset,
+ * and no project.yaml override. Resolves to the richi.richi.solutions logo
+ * already maintained in the project-assets bucket — keeps every project_profile
+ * row with a renderable logo URL.
+ */
+const FALLBACK_LOGO_REPO = 'richi.richi.solutions';
+const FALLBACK_LOGO_FILE = 'logo.png';
+
 /** Syncs README content and project.yaml metadata to project_profiles table. */
 export class ProfileSyncHandler {
   constructor(
@@ -61,6 +70,8 @@ export class ProfileSyncHandler {
       for (const p of existingProfiles.data) knownLogoSha.set(p.repoName, p.logoSha);
     }
 
+    const fallbackLogoUrl = this.buildPublicAssetUrl(FALLBACK_LOGO_REPO, FALLBACK_LOGO_FILE);
+
     for (const repo of repos) {
       // 1. Read README.md
       const readmeResult = await this.github.readFile(this.org, repo.name, 'README.md');
@@ -82,7 +93,17 @@ export class ProfileSyncHandler {
 
       // 5. Upsert profile. Enrichment fields are only sent when non-null, so
       //    curated DB values survive syncs (see supabase-store.adapter).
-      //    Logo precedence: project.yaml declared URL > freshly-uploaded > bucket > none.
+      //    Logo precedence: project.yaml declared URL > freshly-uploaded >
+      //    existing bucket asset > richi.richi.solutions fallback. Skip the
+      //    fallback for the richi repo itself to avoid a self-reference when
+      //    the upload step fails.
+      const isRichiRepo = repo.name === FALLBACK_LOGO_REPO;
+      const resolvedLogoUrl =
+        asString(config['logo_url']) ??
+        logoSync.url ??
+        bucketLogoUrl ??
+        (isRichiRepo ? null : fallbackLogoUrl);
+
       const upsertResult = await this.store.upsertProjectProfile({
         repoName: repo.name,
         readmeContent,
@@ -91,7 +112,7 @@ export class ProfileSyncHandler {
         description: asString(config['description']),
         techStack: asStringArray(config['tech_stack']),
         demoVideoUrl: asString(config['demo_video_url']),
-        logoUrl: asString(config['logo_url']) ?? logoSync.url ?? bucketLogoUrl,
+        logoUrl: resolvedLogoUrl,
         logoSha: logoSync.sha,
         previewImageUrl: bucketPreviewUrl,
         projectUrl: asString(config['project_url']),
@@ -189,6 +210,11 @@ export class ProfileSyncHandler {
    */
   private publicUrlBase(): string {
     return process.env.SUPABASE_URL ?? '';
+  }
+
+  /** Mirrors SupabaseStoreAdapter.publicAssetUrl for use in the handler. */
+  private buildPublicAssetUrl(repoName: string, fileName: string): string {
+    return `${this.publicUrlBase()}/storage/v1/object/public/project-assets/${repoName}/${fileName}`;
   }
 }
 
