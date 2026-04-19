@@ -72,51 +72,75 @@ export class ProfileSyncHandler {
 
     const fallbackLogoUrl = this.buildPublicAssetUrl(FALLBACK_LOGO_REPO, FALLBACK_LOGO_FILE);
 
+    // Phase 1: per-repo data collection. Resolves the logo from index.html and
+    // looks up the bucket assets, but defers upsert so phase 2 can apply the
+    // web-counterpart fallback for *.app.richi.solutions repos using the
+    // already-resolved web logo URLs of the same run.
+    interface RepoSync {
+      readmeContent: string | null;
+      config: Record<string, unknown>;
+      ownLogoUrl: string | null; // project.yaml > sync > existing bucket
+      logoSha: string | null;
+      previewUrl: string | null;
+    }
+    const synced = new Map<string, RepoSync>();
+
     for (const repo of repos) {
-      // 1. Read README.md
       const readmeResult = await this.github.readFile(this.org, repo.name, 'README.md');
       const readmeContent = readmeResult.ok ? readmeResult.data : null;
 
-      // 2. Extract metadata from project.yaml (already parsed by discovery adapter)
       const config = repo.projectConfig ?? {};
 
-      // 3. Sync the logo from the repo's index.html into project-assets.
-      //    Skips upload when SHA matches the previously-stored bytes.
       const logoSync = await this.syncRepoLogo(repo.name, knownLogoSha.get(repo.name) ?? null);
 
-      // 4. Look up preview URL (no upload — preview screenshots are still
-      //    curated manually). Bucket logo URL is overridden by the just-synced
-      //    one when available.
       const assetsResult = await this.store.findRepoAssetUrls(repo.name);
       const bucketLogoUrl = assetsResult.ok ? assetsResult.data.logoUrl : null;
       const bucketPreviewUrl = assetsResult.ok ? assetsResult.data.previewImageUrl : null;
 
-      // 5. Upsert profile. Enrichment fields are only sent when non-null, so
-      //    curated DB values survive syncs (see supabase-store.adapter).
-      //    Logo precedence: project.yaml declared URL > freshly-uploaded >
-      //    existing bucket asset > richi.richi.solutions fallback. Skip the
-      //    fallback for the richi repo itself to avoid a self-reference when
-      //    the upload step fails.
+      const ownLogoUrl =
+        asString(config['logo_url']) ?? logoSync.url ?? bucketLogoUrl;
+
+      synced.set(repo.name, {
+        readmeContent,
+        config,
+        ownLogoUrl,
+        logoSha: logoSync.sha,
+        previewUrl: bucketPreviewUrl,
+      });
+    }
+
+    // Phase 2: apply fallback chain and upsert.
+    // Logo precedence: own resolved URL > web-counterpart (for *.app.* repos) >
+    // richi.richi.solutions fallback. The richi repo never falls back to itself
+    // to avoid a self-reference when its upload fails.
+    for (const repo of repos) {
+      const data = synced.get(repo.name)!;
       const isRichiRepo = repo.name === FALLBACK_LOGO_REPO;
+
+      let counterpartLogoUrl: string | null = null;
+      const webCounterpart = webCounterpartName(repo.name);
+      if (webCounterpart) {
+        counterpartLogoUrl = synced.get(webCounterpart)?.ownLogoUrl ?? null;
+      }
+
       const resolvedLogoUrl =
-        asString(config['logo_url']) ??
-        logoSync.url ??
-        bucketLogoUrl ??
+        data.ownLogoUrl ??
+        counterpartLogoUrl ??
         (isRichiRepo ? null : fallbackLogoUrl);
 
       const upsertResult = await this.store.upsertProjectProfile({
         repoName: repo.name,
-        readmeContent,
+        readmeContent: data.readmeContent,
         readmeSha: null,
-        tagline: asString(config['tagline']),
-        description: asString(config['description']),
-        techStack: asStringArray(config['tech_stack']),
-        demoVideoUrl: asString(config['demo_video_url']),
+        tagline: asString(data.config['tagline']),
+        description: asString(data.config['description']),
+        techStack: asStringArray(data.config['tech_stack']),
+        demoVideoUrl: asString(data.config['demo_video_url']),
         logoUrl: resolvedLogoUrl,
-        logoSha: logoSync.sha,
-        previewImageUrl: bucketPreviewUrl,
-        projectUrl: asString(config['project_url']),
-        isPublic: config['public'] !== false,
+        logoSha: data.logoSha,
+        previewImageUrl: data.previewUrl,
+        projectUrl: asString(data.config['project_url']),
+        isPublic: data.config['public'] !== false,
       });
 
       if (upsertResult.ok) {
@@ -265,6 +289,17 @@ function toRepoPath(href: string): string | null {
   if (/^https?:\/\//i.test(href)) return null;
   const trimmed = href.replace(/^\.\//, '').replace(/^\//, '');
   return `public/${trimmed}`;
+}
+
+/**
+ * Maps a mobile repo name to its web counterpart name. Mobile repos follow the
+ * convention `xyz.app.richi.solutions` and pair with `xyz.richi.solutions` on
+ * the web side (RDF section 00b). Returns null for any name that doesn't match
+ * the mobile pattern.
+ */
+function webCounterpartName(repoName: string): string | null {
+  const match = /^([a-z0-9-]+)\.app\.richi\.solutions$/i.exec(repoName);
+  return match ? `${match[1]}.richi.solutions` : null;
 }
 
 /** Safely extract a string from an unknown config value. */
