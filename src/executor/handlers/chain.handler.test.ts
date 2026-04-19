@@ -21,6 +21,8 @@ const mockStore: StorePort = {
   saveSocialContent: vi.fn(),
   upsertProjectProfile: vi.fn(),
   listProjectProfiles: vi.fn(),
+  findRepoAssetUrls: vi.fn(),
+  uploadLogo: vi.fn(),
 };
 
 const mockClaude: ClaudePort = {

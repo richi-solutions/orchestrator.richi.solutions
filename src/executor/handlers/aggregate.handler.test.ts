@@ -22,6 +22,7 @@ const mockGithub: GitHubPort = {
   listOrgRepos: vi.fn(),
   fileExists: vi.fn(),
   readFile: vi.fn(),
+  readFileBinary: vi.fn(),
   listCommitsSince: vi.fn(),
 };
 
@@ -37,6 +38,8 @@ const mockStore: StorePort = {
   saveSocialContent: vi.fn(),
   upsertProjectProfile: vi.fn(),
   listProjectProfiles: vi.fn(),
+  findRepoAssetUrls: vi.fn(),
+  uploadLogo: vi.fn(),
 };
 
 const jobDef: JobDefinition = {

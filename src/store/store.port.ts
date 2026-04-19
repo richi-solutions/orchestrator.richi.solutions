@@ -10,7 +10,7 @@
 import { Result } from '../lib/result';
 import { JobResult } from '../contracts/v1/job-result.schema';
 
-/** Input for upserting a project profile (README + metadata from project.yaml). */
+/** Input for upserting a project profile (README + metadata from project.yaml + bucket assets). */
 export interface ProjectProfileInput {
   repoName: string;
   readmeContent: string | null;
@@ -20,8 +20,21 @@ export interface ProjectProfileInput {
   techStack: string[];
   demoVideoUrl: string | null;
   logoUrl: string | null;
+  logoSha: string | null;
+  previewImageUrl: string | null;
   projectUrl: string | null;
   isPublic: boolean;
+}
+
+/** Result of uploading a logo asset to the project-assets bucket. */
+export interface LogoUploadResult {
+  publicUrl: string;
+}
+
+/** Asset URLs derived from the project-assets storage bucket. */
+export interface RepoAssetUrls {
+  logoUrl: string | null;
+  previewImageUrl: string | null;
 }
 
 /** Stored project profile as returned from the database. */
@@ -86,4 +99,22 @@ export interface StorePort {
 
   /** Lists all project profiles, ordered by repo name. */
   listProjectProfiles(): Promise<Result<ProjectProfile[]>>;
+
+  /**
+   * Looks up logo and preview asset public URLs for a repo from the
+   * `project-assets` storage bucket. Returns null per field when missing.
+   * Files are expected under the path `<repoName>/{logo,preview}.{png,webp,jpg,jpeg}`.
+   */
+  findRepoAssetUrls(repoName: string): Promise<Result<RepoAssetUrls>>;
+
+  /**
+   * Uploads a logo image to `project-assets/<repoName>/logo.<ext>` (overwrites
+   * any existing object at that path) and returns its public URL.
+   */
+  uploadLogo(
+    repoName: string,
+    bytes: Buffer,
+    ext: string,
+    contentType: string,
+  ): Promise<Result<LogoUploadResult>>;
 }

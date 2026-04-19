@@ -10,17 +10,22 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { v4 as uuidv4 } from 'uuid';
-import { StorePort, CommitSummaryInput, SocialContentInput, ProjectProfileInput, ProjectProfile } from './store.port';
+import { StorePort, CommitSummaryInput, SocialContentInput, ProjectProfileInput, ProjectProfile, RepoAssetUrls, LogoUploadResult } from './store.port';
 import { JobResult } from '../contracts/v1/job-result.schema';
 import { Result, success, failure } from '../lib/result';
 import { logger } from '../lib/logger';
 
+/** Bucket used to host per-repo logos and preview screenshots. Must be public. */
+const ASSETS_BUCKET = 'project-assets';
+
 /** Supabase implementation of StorePort using the service role key. */
 export class SupabaseStoreAdapter implements StorePort {
   private client: SupabaseClient;
+  private url: string;
 
   constructor(url: string, serviceKey: string) {
     this.client = createClient(url, serviceKey);
+    this.url = url;
   }
 
   async saveJobRun(result: JobResult): Promise<Result<{ id: string }>> {
@@ -226,25 +231,32 @@ export class SupabaseStoreAdapter implements StorePort {
     const traceId = uuidv4();
     try {
       const now = new Date().toISOString();
+
+      // Source-of-truth fields: always written, even as null (reflect current GitHub state).
+      const row: Record<string, unknown> = {
+        repo_name: input.repoName,
+        readme_content: input.readmeContent,
+        readme_sha: input.readmeSha,
+        is_public: input.isPublic,
+        last_synced_at: now,
+        updated_at: now,
+      };
+
+      // Enrichment fields: only write when we have a value, so curated DB values
+      // (e.g. project_url set by the display-classification migration) are
+      // preserved across syncs. Empty tech_stack arrays are treated as "no data".
+      if (input.tagline !== null) row.tagline = input.tagline;
+      if (input.description !== null) row.description = input.description;
+      if (input.techStack.length > 0) row.tech_stack = input.techStack;
+      if (input.demoVideoUrl !== null) row.demo_video_url = input.demoVideoUrl;
+      if (input.logoUrl !== null) row.logo_url = input.logoUrl;
+      if (input.logoSha !== null) row.logo_sha = input.logoSha;
+      if (input.previewImageUrl !== null) row.preview_image_url = input.previewImageUrl;
+      if (input.projectUrl !== null) row.project_url = input.projectUrl;
+
       const { data, error } = await this.client
         .from('project_profiles')
-        .upsert(
-          {
-            repo_name: input.repoName,
-            readme_content: input.readmeContent,
-            readme_sha: input.readmeSha,
-            tagline: input.tagline,
-            description: input.description,
-            tech_stack: input.techStack,
-            demo_video_url: input.demoVideoUrl,
-            logo_url: input.logoUrl,
-            project_url: input.projectUrl,
-            is_public: input.isPublic,
-            last_synced_at: now,
-            updated_at: now,
-          },
-          { onConflict: 'repo_name' },
-        )
+        .upsert(row, { onConflict: 'repo_name' })
         .select('id')
         .single();
 
@@ -283,6 +295,8 @@ export class SupabaseStoreAdapter implements StorePort {
         techStack: row.tech_stack ?? [],
         demoVideoUrl: row.demo_video_url,
         logoUrl: row.logo_url,
+        logoSha: row.logo_sha ?? null,
+        previewImageUrl: row.preview_image_url,
         projectUrl: row.project_url,
         isPublic: row.is_public ?? true,
         lastSyncedAt: row.last_synced_at,
@@ -295,5 +309,79 @@ export class SupabaseStoreAdapter implements StorePort {
       logger.error('store_profiles_list_error', err, { traceId });
       return failure('STORE_ERROR', 'Failed to list project profiles', traceId);
     }
+  }
+
+  async findRepoAssetUrls(repoName: string): Promise<Result<RepoAssetUrls>> {
+    const traceId = uuidv4();
+    try {
+      const { data, error } = await this.client.storage
+        .from(ASSETS_BUCKET)
+        .list(repoName, { limit: 100 });
+
+      if (error) {
+        logger.error('store_assets_list_failed', error, { traceId, repoName });
+        return failure('STORE_ERROR', error.message, traceId);
+      }
+
+      const files = (data ?? []).map((f) => f.name);
+      const logoFile = files.find((n) => /^logo\.(png|webp|jpe?g|svg)$/i.test(n));
+      const previewFile = files.find((n) => /^preview\.(png|webp|jpe?g)$/i.test(n));
+
+      return success({
+        logoUrl: logoFile ? this.publicAssetUrl(repoName, logoFile) : null,
+        previewImageUrl: previewFile ? this.publicAssetUrl(repoName, previewFile) : null,
+      });
+    } catch (err) {
+      logger.error('store_assets_list_error', err, { traceId, repoName });
+      return failure('STORE_ERROR', 'Failed to list repo assets', traceId);
+    }
+  }
+
+  async uploadLogo(
+    repoName: string,
+    bytes: Buffer,
+    ext: string,
+    contentType: string,
+  ): Promise<Result<LogoUploadResult>> {
+    const traceId = uuidv4();
+    const fileName = `logo.${ext.toLowerCase()}`;
+    const path = `${repoName}/${fileName}`;
+    try {
+      // Remove stale logo files with different extensions so the bucket only
+      // ever holds the current variant for this repo (prevents findRepoAssetUrls
+      // from returning a cached older format).
+      const { data: existing, error: listErr } = await this.client.storage
+        .from(ASSETS_BUCKET)
+        .list(repoName, { limit: 100 });
+      if (!listErr && existing) {
+        const stale = existing
+          .map((f) => f.name)
+          .filter((n) => /^logo\.(png|webp|jpe?g|svg|ico)$/i.test(n) && n !== fileName)
+          .map((n) => `${repoName}/${n}`);
+        if (stale.length > 0) {
+          await this.client.storage.from(ASSETS_BUCKET).remove(stale);
+        }
+      }
+
+      const { error } = await this.client.storage
+        .from(ASSETS_BUCKET)
+        .upload(path, bytes, { contentType, upsert: true });
+
+      if (error) {
+        logger.error('store_logo_upload_failed', error, { traceId, repoName });
+        return failure('STORE_ERROR', error.message, traceId);
+      }
+
+      logger.info('store_logo_uploaded', { traceId, repoName, path });
+      return success({ publicUrl: this.publicAssetUrl(repoName, fileName) });
+    } catch (err) {
+      logger.error('store_logo_upload_error', err, { traceId, repoName });
+      return failure('STORE_ERROR', 'Failed to upload logo', traceId);
+    }
+  }
+
+  /** Builds a public object URL for a file inside the project-assets bucket. */
+  private publicAssetUrl(repoName: string, fileName: string): string {
+    return `${this.url}/storage/v1/object/public/${ASSETS_BUCKET}/${repoName}/${fileName}`;
   }
 }
