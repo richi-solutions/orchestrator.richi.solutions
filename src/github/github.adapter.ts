@@ -98,6 +98,36 @@ export class GitHubAdapter implements GitHubPort {
     }
   }
 
+  async readFileBinary(owner: string, repo: string, path: string): Promise<Result<Buffer>> {
+    const traceId = uuidv4();
+    try {
+      const response = await this.octokit.repos.getContent({ owner, repo, path });
+      const data = response.data;
+      if (Array.isArray(data) || data.type !== 'file') {
+        return failure('GITHUB_ERROR', `${path} is not a file`, traceId);
+      }
+      // Files <= 1 MB return base64 inline; larger ones are blanked and must
+      // be fetched via download_url.
+      if (typeof data.content === 'string' && data.content.length > 0) {
+        return success(Buffer.from(data.content, 'base64'));
+      }
+      if (data.download_url) {
+        const res = await fetch(data.download_url);
+        if (!res.ok) {
+          return failure('GITHUB_ERROR', `Download failed (${res.status}) for ${path}`, traceId);
+        }
+        return success(Buffer.from(await res.arrayBuffer()));
+      }
+      return failure('GITHUB_ERROR', `No content available for ${path}`, traceId);
+    } catch (err: unknown) {
+      if (err instanceof Error && 'status' in err && (err as { status: number }).status === 404) {
+        return failure('NOT_FOUND', `File ${path} not found in ${repo}`, traceId);
+      }
+      logger.error('github_file_read_binary_failed', err, { owner, repo, path, traceId });
+      return failure('GITHUB_ERROR', `Failed to read ${path} from ${repo}`, traceId);
+    }
+  }
+
   async listCommitsSince(owner: string, repo: string, since: string): Promise<Result<CommitInfo[]>> {
     const traceId = uuidv4();
     try {

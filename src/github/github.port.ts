@@ -73,6 +73,20 @@ export interface GitHubPort {
   readFile(owner: string, repo: string, path: string): Promise<Result<string>>;
 
   /**
+   * Reads the raw byte content of a file from a repository.
+   *
+   * Use for binary assets (images, icons) where UTF-8 decoding would corrupt
+   * the data. Falls back to the raw download URL when the file exceeds the
+   * 1 MB inline-content limit of the GitHub Contents API.
+   *
+   * @param owner - Repository owner
+   * @param repo - Repository name
+   * @param path - File path relative to the repository root
+   * @returns File bytes as a Buffer
+   */
+  readFileBinary(owner: string, repo: string, path: string): Promise<Result<Buffer>>;
+
+  /**
    * Lists commits to the default branch since the given ISO 8601 timestamp.
    *
    * @param owner - Repository owner
