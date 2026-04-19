@@ -33,8 +33,11 @@ export class ProfileSyncHandler {
     const reposResult = await this.discovery.discoverRepos();
     if (!reposResult.ok) return reposResult;
 
-    // Exclude mobile app repos (*.app.richi.solutions) — only web versions are synced
-    const repos = reposResult.data.filter((r) => !r.name.includes('.app.richi.solutions'));
+    // Sync every discovered repo (including *.app.richi.solutions). Visibility on
+    // the homepage is controlled by the curated `displayed` column, not by the
+    // sync filter — so mobile variants land in the DB but stay hidden until
+    // explicitly enabled.
+    const repos = reposResult.data;
     const results: TargetResult[] = [];
 
     logger.info('profile_sync_start', { traceId, jobName, repoCount: repos.length });
