@@ -1,8 +1,11 @@
-# Orchestrator: Runs documentation updater agent across all org repos
+# Orchestrator: Runs documentation + marketing agents across all org repos
 #
 # This workflow discovers all repos in the richi-solutions org that have
-# a .claude/agents/documentation.md file, then runs the Claude agent
-# to generate/update documentation and opens a PR with the changes.
+# a .claude/agents/documentation.md file, then runs two Claude agents
+# sequentially on each repo:
+#   1. documentation — README, JSDoc, architecture docs, CONTRIBUTING
+#   2. marketing     — MARKETING.md (value prop, audience, positioning)
+# Changes from both agents land in one combined PR per repo.
 #
 # Requires org secrets:
 #   - ANTHROPIC_API_KEY
@@ -80,12 +83,24 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
-          claude -p "You are the documentation agent. Read .claude/agents/documentation.md for your full instructions, then analyze this project and generate/update all documentation: README.md, code comments (JSDoc/@fileoverview), architecture docs, CONTRIBUTING.md, and .env.example. CRITICAL RULES: Do NOT modify application logic. Do NOT modify any files under .claude/ — that directory is managed by sync-dotclaude and must not be touched." \
+          claude -p "You are the documentation agent. Read .claude/agents/documentation.md for your full instructions, then analyze this project and generate/update all documentation: README.md, code comments (JSDoc/@fileoverview), architecture docs, CONTRIBUTING.md, and .env.example. CRITICAL RULES: Do NOT modify application logic. Do NOT modify any files under .claude/ — that directory is managed by sync-dotclaude and must not be touched. Do NOT modify MARKETING.md — the marketing agent owns that file." \
             --allowedTools "Bash,Read,Edit,Write,Grep,Glob" \
             --model claude-sonnet-4-6 \
             --max-turns 30 \
             --output-format json \
             > /tmp/docs-result.json 2>&1 || true
+
+      - name: Run Claude Marketing Agent
+        if: hashFiles('.claude/agents/marketing.md') != ''
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          claude -p "You are the marketing agent. Read .claude/agents/marketing.md for your full instructions, then analyze this project and generate/update MARKETING.md only. CRITICAL RULES: Only modify MARKETING.md. Do NOT modify README.md, CONTRIBUTING.md, source code, tests, or any files under .claude/. Do NOT invent features that are not in the codebase." \
+            --allowedTools "Bash,Read,Edit,Write,Grep,Glob" \
+            --model claude-sonnet-4-6 \
+            --max-turns 20 \
+            --output-format json \
+            > /tmp/marketing-result.json 2>&1 || true
 
       - name: Create Docs PR if changes exist
         env:
@@ -108,33 +123,37 @@ jobs:
             git checkout -b "$BRANCH"
             git add -A -- ':!.claude/'
             git commit -m "$(cat <<'EOF'
-          docs: automated documentation update
+          docs: automated documentation + marketing update
 
-          Generated/updated by Claude documentation agent:
+          Generated/updated by Claude documentation and marketing agents:
           - README.md improvements
           - JSDoc comments on exported functions
           - @fileoverview headers on modules
           - Architecture docs and contributing guide
+          - MARKETING.md value proposition and positioning copy
 
           Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
           EOF
             )"
             git push origin "$BRANCH"
 
-            # Extract summary from Claude output
-            SUMMARY=$(cat /tmp/docs-result.json | jq -r '.result // "No summary available"' 2>/dev/null || echo "Documentation update completed, see diff for changes.")
+            # Extract summaries from both agent outputs
+            DOCS_SUMMARY=$(cat /tmp/docs-result.json | jq -r '.result // "No summary available"' 2>/dev/null || echo "Documentation update completed, see diff for changes.")
+            MARKETING_SUMMARY=$(cat /tmp/marketing-result.json 2>/dev/null | jq -r '.result // "Marketing agent did not run"' 2>/dev/null || echo "Marketing agent did not run")
+            SUMMARY=$(printf '### Documentation\n\n%s\n\n### Marketing\n\n%s' "$DOCS_SUMMARY" "$MARKETING_SUMMARY")
 
             # Ensure labels exist (create if missing)
             gh label create "documentation" --repo "richi-solutions/${{ matrix.repo }}" --color "0075ca" --description "Documentation updates" 2>/dev/null || true
+            gh label create "marketing" --repo "richi-solutions/${{ matrix.repo }}" --color "e99695" --description "Marketing copy updates" 2>/dev/null || true
             gh label create "automated" --repo "richi-solutions/${{ matrix.repo }}" --color "bfdadc" --description "Automated by CI" 2>/dev/null || true
 
             gh pr create \
               --repo "richi-solutions/${{ matrix.repo }}" \
-              --title "docs: automated documentation update $(date +%Y-%m-%d)" \
+              --title "docs: automated documentation + marketing update $(date +%Y-%m-%d)" \
               --body "$(cat <<EOF
-          ## Documentation Update — Automated
+          ## Documentation + Marketing Update — Automated
 
-          This PR was generated by the Claude documentation agent.
+          This PR was generated by the Claude documentation and marketing agents.
 
           ### What Changed
 
@@ -144,14 +163,15 @@ jobs:
 
           - [ ] README.md changes are accurate
           - [ ] Code comments are correct and helpful
+          - [ ] MARKETING.md positioning matches actual product capabilities
           - [ ] No application logic was modified
           - [ ] File paths and script names are verified
 
           ---
-          _Generated by Claude documentation agent via [orchestrate-docs.yml](https://github.com/richi-solutions/orchestrator.richi.solutions)_
+          _Generated by Claude documentation + marketing agents via [orchestrate-docs.yml](https://github.com/richi-solutions/orchestrator.richi.solutions)_
           EOF
             )" \
-              --label "documentation,automated" \
+              --label "documentation,marketing,automated" \
               2>&1 | tee /tmp/pr-url.txt
 
             # Auto-merge the PR (squash) to minimize branch lifetime
@@ -160,5 +180,5 @@ jobs:
               gh pr merge "$PR_URL" --squash --delete-branch --admin || echo "Auto-merge failed for ${{ matrix.repo }}, PR remains open for manual review"
             fi
           else
-            echo "No documentation changes needed for ${{ matrix.repo }}"
+            echo "No documentation or marketing changes needed for ${{ matrix.repo }}"
           fi

@@ -78,6 +78,7 @@ export class ProfileSyncHandler {
     // already-resolved web logo URLs of the same run.
     interface RepoSync {
       readmeContent: string | null;
+      marketingMd: string | null;
       config: Record<string, unknown>;
       ownLogoUrl: string | null; // project.yaml > sync > existing bucket
       logoSha: string | null;
@@ -88,6 +89,9 @@ export class ProfileSyncHandler {
     for (const repo of repos) {
       const readmeResult = await this.github.readFile(this.org, repo.name, 'README.md');
       const readmeContent = readmeResult.ok ? readmeResult.data : null;
+
+      const marketingResult = await this.github.readFile(this.org, repo.name, 'MARKETING.md');
+      const marketingMd = marketingResult.ok ? marketingResult.data : null;
 
       const config = repo.projectConfig ?? {};
 
@@ -102,6 +106,7 @@ export class ProfileSyncHandler {
 
       synced.set(repo.name, {
         readmeContent,
+        marketingMd,
         config,
         ownLogoUrl,
         logoSha: logoSync.sha,
@@ -131,7 +136,7 @@ export class ProfileSyncHandler {
       const upsertResult = await this.store.upsertProjectProfile({
         repoName: repo.name,
         readmeContent: data.readmeContent,
-        readmeSha: null,
+        marketingMd: data.marketingMd,
         tagline: asString(data.config['tagline']),
         description: asString(data.config['description']),
         techStack: asStringArray(data.config['tech_stack']),

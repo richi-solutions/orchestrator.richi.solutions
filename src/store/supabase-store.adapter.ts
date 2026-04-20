@@ -236,7 +236,7 @@ export class SupabaseStoreAdapter implements StorePort {
       const row: Record<string, unknown> = {
         repo_name: input.repoName,
         readme_content: input.readmeContent,
-        readme_sha: input.readmeSha,
+        marketing_md: input.marketingMd,
         is_public: input.isPublic,
         last_synced_at: now,
         updated_at: now,
@@ -289,7 +289,7 @@ export class SupabaseStoreAdapter implements StorePort {
         id: row.id,
         repoName: row.repo_name,
         readmeContent: row.readme_content,
-        readmeSha: row.readme_sha,
+        marketingMd: row.marketing_md,
         tagline: row.tagline,
         description: row.description,
         techStack: row.tech_stack ?? [],

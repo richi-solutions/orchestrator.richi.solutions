@@ -10,11 +10,11 @@
 import { Result } from '../lib/result';
 import { JobResult } from '../contracts/v1/job-result.schema';
 
-/** Input for upserting a project profile (README + metadata from project.yaml + bucket assets). */
+/** Input for upserting a project profile (README + MARKETING.md + metadata from project.yaml + bucket assets). */
 export interface ProjectProfileInput {
   repoName: string;
   readmeContent: string | null;
-  readmeSha: string | null;
+  marketingMd: string | null;
   tagline: string | null;
   description: string | null;
   techStack: string[];
