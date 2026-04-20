@@ -95,8 +95,8 @@ jobs:
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             BRANCH="security-fix-$(date +%Y%m%d)"
-            git config user.name "claude-security-bot"
-            git config user.email "security@richi-solutions.com"
+            git config user.name "richi-solutions"
+            git config user.email "info@richi.solutions"
             git checkout -b "$BRANCH"
             git add -A
             git commit -m "$(cat <<'EOF'

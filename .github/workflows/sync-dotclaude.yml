@@ -136,8 +136,8 @@ jobs:
 
             git diff --stat
 
-            git config user.name "richi-config-bot"
-            git config user.email "config@richi-solutions.com"
+            git config user.name "richi-solutions"
+            git config user.email "info@richi.solutions"
             git add -A
             git commit -m "chore: sync .claude from orchestrator" \
               -m "Updated shared .claude/ content (agents, rules, ref, skills, sync)" \
