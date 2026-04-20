@@ -80,6 +80,17 @@ for repo_dir in "$PARENT_DIR"/*.richi.solutions; do
     continue
   fi
 
+  # Skip archived repos — pushes would fail with 403 and kill the whole sync.
+  # Uses `gh api` with a short timeout; if gh is unavailable or the lookup
+  # fails, the sync proceeds (defensive: don't block on network).
+  if command -v gh >/dev/null 2>&1; then
+    archived=$(gh api "repos/richi-solutions/$repo_name" --jq .archived 2>/dev/null || echo "")
+    if [ "$archived" = "true" ]; then
+      echo "[$repo_name] Archived on GitHub — skipping"
+      continue
+    fi
+  fi
+
   echo "[$repo_name] Syncing..."
 
   # Pull latest from remote first
