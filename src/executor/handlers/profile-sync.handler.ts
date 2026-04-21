@@ -185,16 +185,29 @@ export class ProfileSyncHandler {
   }
 
   /**
-   * Resolves the repo's icon from index.html, downloads the bytes, and uploads
-   * them to project-assets when the SHA differs from the stored one.
+   * Resolves the repo's icon, downloads the bytes, and uploads them to
+   * project-assets when the SHA differs from the stored one.
    *
-   * Returns null url + null sha when the repo has no index.html or no icon
-   * link — the caller leaves the existing logo_url untouched in that case.
+   * Source precedence:
+   *   1. `.claude/logo.{png,svg,webp,jpg,jpeg}` — explicit repo override for
+   *      cases where the real logo lives outside `/public` (e.g. bundled Vite
+   *      assets under `src/assets/`).
+   *   2. `<link rel="apple-touch-icon|icon">` resolved from `index.html`.
+   *
+   * Returns null url + null sha when neither source resolves — the caller
+   * leaves the existing logo_url untouched in that case.
    */
   private async syncRepoLogo(
     repoName: string,
     knownSha: string | null,
   ): Promise<{ url: string | null; sha: string | null }> {
+    // 1. Try the explicit .claude/logo.* override first.
+    const override = await this.findClaudeLogoOverride(repoName);
+    if (override) {
+      return this.processLogoBytes(repoName, override.ext, override.contentType, override.bytes, knownSha);
+    }
+
+    // 2. Fall back to index.html icon parsing.
     const indexResult = await this.github.readFile(this.org, repoName, 'index.html');
     if (!indexResult.ok) return { url: null, sha: null };
 
@@ -214,14 +227,49 @@ export class ProfileSyncHandler {
       return { url: null, sha: null };
     }
 
-    const sha = createHash('sha256').update(fileResult.data).digest('hex');
-    const expectedUrl = `${this.publicUrlBase()}/storage/v1/object/public/project-assets/${repoName}/logo.${ext}`;
+    return this.processLogoBytes(repoName, ext, contentType, fileResult.data, knownSha);
+  }
+
+  /**
+   * Tries to fetch `.claude/logo.{ext}` from the repo. Iterates common image
+   * extensions in order and returns the first hit. This is the repo-owner's
+   * escape hatch for logos that don't live at a browser-reachable public path
+   * (e.g. Vite-bundled assets under `src/assets/`).
+   */
+  private async findClaudeLogoOverride(
+    repoName: string,
+  ): Promise<{ ext: string; contentType: string; bytes: Buffer } | null> {
+    for (const ext of Object.keys(LOGO_EXT_TO_MIME)) {
+      const path = `.claude/logo.${ext}`;
+      const fileResult = await this.github.readFileBinary(this.org, repoName, path);
+      if (fileResult.ok) {
+        logger.info('profile_sync_logo_override_found', { repoName, path });
+        return { ext, contentType: LOGO_EXT_TO_MIME[ext], bytes: fileResult.data };
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Hashes the logo bytes, skips the upload when the SHA already matches the
+   * stored value, and uploads to the bucket otherwise. Returns the resulting
+   * public URL and SHA (both null when the upload itself fails).
+   */
+  private async processLogoBytes(
+    repoName: string,
+    ext: string,
+    contentType: string,
+    bytes: Buffer,
+    knownSha: string | null,
+  ): Promise<{ url: string | null; sha: string | null }> {
+    const sha = createHash('sha256').update(bytes).digest('hex');
+    const expectedUrl = this.buildPublicAssetUrl(repoName, `logo.${ext}`);
 
     if (sha === knownSha) {
       return { url: expectedUrl, sha };
     }
 
-    const uploadResult = await this.store.uploadLogo(repoName, fileResult.data, ext, contentType);
+    const uploadResult = await this.store.uploadLogo(repoName, bytes, ext, contentType);
     if (!uploadResult.ok) {
       logger.warn('profile_sync_logo_upload_failed', { repoName, code: uploadResult.error.code });
       return { url: null, sha: null };
