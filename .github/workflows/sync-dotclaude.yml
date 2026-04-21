@@ -103,12 +103,19 @@ jobs:
 
             # Copy shared directories from orchestrator
             # (rsync deletes removed files, respects exclusions)
+            # logo.* is per-repo (consumed by profile-sync handler); never
+            # overwrite or delete it during distribution.
             rsync -a --delete \
               --exclude='CLAUDE.local.md' \
               --exclude='CLAUDE.mobile.md' \
               --exclude='settings.local.json' \
               --exclude='.mcp.json' \
               --exclude='reviews/' \
+              --exclude='logo.png' \
+              --exclude='logo.svg' \
+              --exclude='logo.webp' \
+              --exclude='logo.jpg' \
+              --exclude='logo.jpeg' \
               "$SOURCE/" .claude/
 
             # Platform-aware CLAUDE.md: *.app.richi.solutions → mobile template
