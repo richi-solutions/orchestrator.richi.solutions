@@ -320,6 +320,37 @@ A vendor is considered included in the project when at least one signal is match
 
 ---
 
+### Maps & Geocoding
+
+#### Mapbox Inc.
+- **Category:** Geocoding, location autocomplete, maps, navigation tiles
+- **Detection signals:** `mapbox-gl` / `@mapbox/*` packages, `VITE_MAPBOX_ACCESS_TOKEN` / `MAPBOX_ACCESS_TOKEN` env vars, `api.mapbox.com` endpoints (e.g. `/search/searchbox/v1/`, `/search/geocode/v6/`, `/styles/v1/`)
+- **Default region:** USA (multi-region edge network); no EU-only region option
+- **DPA:** Available at https://www.mapbox.com/legal/dpa — incorporated by reference into the Mapbox Terms of Service for Free / Pay-as-you-go plans. No separate signature workflow on standard plans; ToS acceptance at account creation constitutes DPA acceptance.
+- **International transfer:** EU-US Data Privacy Framework (Mapbox Inc. is DPF-certified) + SCCs included in DPA terms
+- **Personal data processed:** Search query strings (free text typed by users), IP address (received automatically by Mapbox edge), session token (UUID v4 used for billing aggregation, not cross-session tracking)
+- **User obligations:**
+  1. Confirm Mapbox account exists and ToS were accepted at creation
+  2. Document the controller-processor relationship by linking to the Mapbox ToS + DPA URLs in privacy disclosure
+  3. Disclose Mapbox in user-facing privacy policy as a subprocessor (search queries + IP)
+  4. Enterprise customers only: counter-sign custom DPA via account.mapbox.com or compliance@mapbox.com
+- **AI Act relevance:** None — pure geo-data service, no AI inference.
+
+#### Google Maps Platform (Alphabet Inc.)
+- **Category:** Maps, Places API (POI autocomplete, place details), Directions, Geocoding
+- **Detection signals:** `@googlemaps/*` packages, `GOOGLE_MAPS_API_KEY` / `VITE_GOOGLE_MAPS_API_KEY`, `maps.googleapis.com` endpoints
+- **Default region:** USA (global edge); regional restrictions configurable via API key restrictions
+- **DPA:** Google Cloud DPA at https://cloud.google.com/terms/data-processing-addendum — auto-applies to Google Cloud / Maps Platform billing accounts
+- **International transfer:** EU-US DPF (Google LLC is DPF-certified) + SCCs in Google Cloud DPA
+- **User obligations:**
+  1. Use a Google Cloud billing account (DPA auto-applies)
+  2. Display "Powered by Google" attribution as required by Google Maps Platform Terms
+  3. Place Details responses may only be cached for 30 days max; place IDs cacheable indefinitely
+  4. Disclose Google as subprocessor in privacy policy (search queries, IP, optional session token)
+- **AI Act relevance:** None for core Maps APIs — pure geo-data service.
+
+---
+
 ## AI Act Quick-Reference: GPAI Providers
 
 The following vendors qualify as General-Purpose AI (GPAI) providers under the EU AI Act, triggering deployer obligations for the integrating party:
