@@ -43,6 +43,9 @@ Block deployment until all pass:
 - [ ] Vercel project linked and environment variables configured
 - [ ] Supabase Cloud project linked (own project, not managed by third party)
 - [ ] `vite build` passes without errors
+- [ ] Sitemap generation script present and wired into `npm run build` (`scripts/generate-sitemap.mjs` — see `ref/growth/seo.md` §7)
+- [ ] CI verifies `public/sitemap.xml` matches generator output (drift check)
+- [ ] `robots.txt` references the sitemap and disallows non-indexable route categories
 
 ---
 
