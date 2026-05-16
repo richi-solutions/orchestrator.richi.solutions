@@ -43,6 +43,12 @@ Use `@.claude/ref/<path>` syntax to load in Claude Code.
 | React Native / Mobile (default) | `.claude/ref/mobile/react-native-kb.md` |
 | Flutter / Mobile (deprecated) | `.claude/ref/mobile/flutter-kb.md` |
 
+### Content Operations
+
+| Task | File |
+|------|------|
+| Content automation, social integration, response management | `.claude/ref/content-automation.md` |
+
 ### Compliance
 
 | Task | File |
