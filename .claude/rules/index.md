@@ -47,7 +47,9 @@ Use `@.claude/ref/<path>` syntax to load in Claude Code.
 
 | Task | File |
 |------|------|
-| Content automation, social integration, response management | `.claude/ref/content-automation.md` |
+| 4-phase automation lifecycle, social integration, response management | `.claude/ref/content-ops/automation.md` |
+| Storytelling craft — hook archetypes, story structures, CTA library | `.claude/ref/content-ops/storytelling.md` |
+| Visual contract — aspect ratios, safe zones, motion principles | `.claude/ref/content-ops/visuals.md` |
 
 ### Compliance
 

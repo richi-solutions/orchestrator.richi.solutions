@@ -46,9 +46,13 @@ Out of scope:
 
 | Layer | Owner | Location |
 |---|---|---|
-| Pattern (this doc) | Orchestrator | `.claude/ref/content-automation.md` |
+| Pattern (this doc) | Orchestrator | `.claude/ref/content-ops/automation.md` |
+| Storytelling craft pattern | Orchestrator | `.claude/ref/content-ops/storytelling.md` |
+| Visual contract pattern | Orchestrator | `.claude/ref/content-ops/visuals.md` |
 | Folder structure | Standard, enforced | per repo: `content-ops/` |
-| Strategy, storytelling, visuals | Per-product (brand-specific) | per repo: `content-ops/*.md` |
+| Strategy (per-brand) | Per-product | per repo: `content-ops/strategy.md` |
+| Brand voice (per-brand) | Per-product | per repo: `content-ops/brand-voice.md` |
+| Brand visuals (per-brand) | Per-product | per repo: `content-ops/brand-visuals.md` |
 | n8n workflows + prompts | Per-product | per repo: `content-ops/workflows/<name>/` |
 | Meta / TikTok app credentials | Per-product (own brand accounts) | per repo: Vercel / Supabase secrets |
 | Runtime code (webhooks, ingest, UI) | Per-product, follows RDF | per repo: `supabase/functions/`, `src/pages/admin/` |
@@ -64,9 +68,11 @@ Top-level `content-ops/` is mandatory once Phase 1 begins:
 ```
 content-ops/
   README.md                           # Index, current phase, owners
-  strategy.md                         # Audiences, channels, cadence, KPIs
-  storytelling-guide.md               # Voice, hooks, story patterns
-  visuals-guide.md                    # Brand colors, typography, templates, aspect ratios
+  strategy.md                         # Audiences, channels, cadence, KPIs (per-brand)
+  brand-voice.md                      # Voice attributes, banned phrases, series naming
+                                      #   ↳ follows .claude/ref/content-ops/storytelling.md pattern
+  brand-visuals.md                    # Brand colors, typography, logo, templates
+                                      #   ↳ follows .claude/ref/content-ops/visuals.md pattern
   workflows/
     <workflow-slug>/
       README.md                       # Trigger, inputs, outputs, edge cases
@@ -79,6 +85,8 @@ content-ops/
     README.md                         # Client key, scopes, token refresh notes
     accounts.md                       # Linked TikTok accounts
 ```
+
+The two pattern docs (`storytelling.md` and `visuals.md`) in this folder define the *framework* (hook archetypes, story structures, CTA library, aspect ratios, safe zones, motion defaults). Each product's `brand-voice.md` and `brand-visuals.md` instantiate that pattern with brand-specific substance (Padel League's voice ≠ Moviemind's voice).
 
 Runtime code does NOT live under `content-ops/`. It follows RDF placement:
 
@@ -104,15 +112,17 @@ Content automation rolls out in four phases. Each phase has an entry trigger, de
 
 **Deliverables:**
 
-* `content-ops/` folder created with all top-level guides filled
+* `content-ops/` folder created
+* `strategy.md` filled — target platforms, audience, posting cadence
+* `brand-voice.md` filled — instantiates `storytelling.md` pattern with brand-specific voice attributes, banned phrases, series
+* `brand-visuals.md` filled — instantiates `visuals.md` pattern with brand-specific colors, fonts, logo, templates
 * At least one n8n workflow versioned in `content-ops/workflows/<name>/`
 * Prompts maintained in `prompts.md` — copy-paste destination for n8n nodes
-* Strategy doc identifies target platforms, audience, posting cadence
 
 **Gate to Phase 2:**
 
 * Workflow runs end-to-end in n8n
-* Brand identity decisions documented (voice, visuals)
+* Brand identity decisions documented (voice + visuals)
 * At least one social account exists for the brand
 
 ## Phase 2 — Anbindung (Platform Connection)
@@ -246,7 +256,8 @@ No PII in event payloads. Platform user IDs are non-PII identifiers. Message con
 
 | Asset | Canonical Source | Mirrored To |
 |---|---|---|
-| Strategy, storytelling, visuals | Repo (`content-ops/*.md`) | — |
+| Storytelling pattern, visual contract | Orchestrator (`.claude/ref/content-ops/`) | All product repos (via sync) |
+| Brand strategy, voice, visuals | Repo (`content-ops/strategy.md`, `brand-voice.md`, `brand-visuals.md`) | — |
 | Prompts | Repo (`content-ops/workflows/<x>/prompts.md`) | n8n (manual paste or future MCP sync) |
 | n8n workflow definition | n8n instance | Repo (`content-ops/workflows/<x>/workflow.json`, exported periodically) |
 | Tokens | Supabase Vault | — |
@@ -271,6 +282,8 @@ Conflict-resolution rule: if repo and n8n diverge, the **prompt source of truth 
 
 | Topic | Reference |
 |---|---|
+| Storytelling craft (hooks, structures, CTAs) | `.claude/ref/content-ops/storytelling.md` |
+| Visual contract (aspect ratios, safe zones, motion) | `.claude/ref/content-ops/visuals.md` |
 | Event schema + analytics backend | `.claude/ref/growth/analytics.md` |
 | SEO of published content | `.claude/ref/growth/seo.md` |
 | Conversion funnel from content | `.claude/ref/growth/funnel.md` |
@@ -282,9 +295,14 @@ Conflict-resolution rule: if repo and n8n diverge, the **prompt source of truth 
 
 # 9 — Versioning & Status
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** ACTIVE
 **Initial scope:** 4 phases, Meta + TikTok, Personal / Development Mode apps, inbound-only response automation.
+
+**Changelog:**
+
+* **1.1 (2026-05-17):** Moved into `content-ops/` subfolder. Split per-repo `storytelling-guide.md` / `visuals-guide.md` into orchestrator-side patterns (`storytelling.md`, `visuals.md`) and per-repo brand instances (`brand-voice.md`, `brand-visuals.md`).
+* **1.0 (2026-05-16):** Initial scope.
 
 Future revisions may add:
 
