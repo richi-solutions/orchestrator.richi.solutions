@@ -49,7 +49,7 @@ Use `@.claude/ref/<path>` syntax to load in Claude Code.
 |------|------|
 | 4-phase automation lifecycle, social integration, response management | `.claude/ref/content-ops/automation.md` |
 | Storytelling craft — hook archetypes, story structures, CTA library | `.claude/ref/content-ops/storytelling.md` |
-| Visual contract — aspect ratios, safe zones, motion principles | `.claude/ref/content-ops/visuals.md` |
+| Visual contract — aspect ratios, safe zones, motion principles, design language (shot types/lens/lighting/composition), AI prompt craft, AI production workflow | `.claude/ref/content-ops/visuals.md` |
 
 ### Compliance
 
