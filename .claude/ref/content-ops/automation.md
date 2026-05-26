@@ -86,7 +86,7 @@ content-ops/
     accounts.md                       # Linked TikTok accounts
 ```
 
-The two pattern docs (`storytelling.md` and `visuals.md`) in this folder define the *framework* (hook archetypes, story structures, CTA library, aspect ratios, safe zones, motion defaults). Each product's `brand-voice.md` and `brand-visuals.md` instantiate that pattern with brand-specific substance (Padel League's voice ≠ Moviemind's voice).
+The two pattern docs (`storytelling.md` and `visuals.md`) in this folder define the *framework* (hook archetypes, story structures, CTA library, aspect ratios, safe zones, motion defaults). Each product's `brand-voice.md` and `brand-visuals.md` instantiate that pattern with brand-specific substance (PadelLeague's voice ≠ Moviemind's voice).
 
 Runtime code does NOT live under `content-ops/`. It follows RDF placement:
 
