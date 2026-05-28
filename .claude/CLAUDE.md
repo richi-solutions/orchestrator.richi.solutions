@@ -89,6 +89,10 @@ main       →  Vercel Production Deployment (auto on merge)
 - **Implementation:** Claude Code (this environment)
 - **Hosting:** Vercel (frontend) + Supabase Cloud (backend)
 - **feature branches** for all changes — never commit directly to main
+- **Parallel sessions:** when running multiple Claude Code sessions against
+  the same repo, use git worktrees instead of switching branches in a single
+  working copy. Run `/new-worktree <feature-name>` to spin up an isolated
+  worktree. Full reference: `@.claude/ref/workflow/worktrees.md`.
 
 ---
 

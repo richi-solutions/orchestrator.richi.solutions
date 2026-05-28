@@ -57,6 +57,12 @@ Use `@.claude/ref/<path>` syntax to load in Claude Code.
 |------|------|
 | Vendor DPA & transfer mechanism catalogue | `.claude/ref/compliance/vendor-knowledge-base.md` |
 
+### Workflow
+
+| Task | File |
+|------|------|
+| Git worktrees — parallel Claude Code sessions, setup, lifecycle, trade-offs | `.claude/ref/workflow/worktrees.md` |
+
 ### Other
 
 | Task | File |
