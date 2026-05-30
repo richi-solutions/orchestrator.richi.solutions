@@ -1,7 +1,7 @@
 # content-automation.md
 
 **Richi AI — Content Automation & Social Engagement Execution Contract**
-Version: 1.0
+Version: 1.3
 Status: ACTIVE
 Execution Mode: AGENT-EXECUTABLE
 Agent: Claude Code (implementation)
@@ -68,7 +68,7 @@ Top-level `content-ops/` is mandatory once Phase 1 begins:
 ```
 content-ops/
   README.md                           # Index, current phase, owners
-  strategy.md                         # Audiences, channels, cadence, KPIs (per-brand)
+  strategy.md                         # Audiences, channels, cadence, KPIs, channel mix, AI-disclosure policy (per-brand)
   brand-voice.md                      # Voice attributes, banned phrases, series naming
                                       #   ↳ follows .claude/ref/content-ops/storytelling.md pattern
   brand-visuals.md                    # Brand colors, typography, logo, templates
@@ -100,6 +100,43 @@ Runtime code does NOT live under `content-ops/`. It follows RDF placement:
 | Inbox / response UI | `src/pages/admin/inbox/` |
 | DB schema | `supabase/migrations/*_content_*.sql` |
 
+## 3.1 — strategy.md Schema (per brand)
+
+Each brand's `content-ops/strategy.md` declares:
+
+```yaml
+audiences:
+  - segment: "..."
+    primary_platform: "tiktok | instagram | youtube_shorts | linkedin"
+
+channels:
+  primary:
+    platform: "tiktok | instagram_reels | youtube_shorts | ..."
+    cadence_per_week: ...
+    primary_format: "vertical_short_form | carousel | long_form_text"
+  secondary:
+    - platform: "..."
+      cadence_per_week: ...
+      accept_lower_performance: true       # platform-bias expected (see storytelling.md §8.2)
+  cross_posting:
+    use_platform_cross_post_function: false   # always false — n8n posts natively per platform
+    use_n8n_native_publisher: true
+
+ai_disclosure:
+  default: "off"                          # toggle off unless content is AI-generated
+  rule: "set ON when image, voice, or video is AI-generated; required by Meta and TikTok policies"
+
+measurement_targets:
+  # See measurement.md §7 for full schema (watch time, ratios, follower composition)
+  primary_platform_for_diagnostics: "tiktok"   # platform whose retention graph drives iteration
+
+hashtags:
+  standard_set: ["...", "...", "...", "...", "..."]   # 3-5 default; see storytelling.md §10.1
+  per_post_swaps_allowed: true
+```
+
+n8n publishing workflows read this file to configure per-platform output and disclosure.
+
 ---
 
 # 4 — Phase Lifecycle
@@ -113,11 +150,12 @@ Content automation rolls out in four phases. Each phase has an entry trigger, de
 **Deliverables:**
 
 * `content-ops/` folder created
-* `strategy.md` filled — target platforms, audience, posting cadence
-* `brand-voice.md` filled — instantiates `storytelling.md` pattern with brand-specific voice attributes, banned phrases, series
-* `brand-visuals.md` filled — instantiates `visuals.md` pattern with brand-specific colors, fonts, logo, templates
+* `strategy.md` filled — audiences, channels, cadence, KPIs, AI-disclosure policy (see §3.1)
+* `brand-voice.md` filled — instantiates `storytelling.md` pattern
+* `brand-visuals.md` filled — instantiates `visuals.md` pattern
 * At least one n8n workflow versioned in `content-ops/workflows/<name>/`
 * Prompts maintained in `prompts.md` — copy-paste destination for n8n nodes
+* Publishing workflow respects: native-posting per platform (no cross-post API), AI-disclosure rule from `strategy.md`, hashtag rule from `storytelling.md` §10.1
 
 **Gate to Phase 2:**
 
@@ -169,18 +207,19 @@ Tokens encrypted at rest (Supabase Vault or equivalent). Never logged in plainte
 
 * Daily ingest cron pulls post metrics from Meta Graph API and TikTok Display API
 * `content_posts` and `content_metrics` tables populated
-* Admin dashboard at `src/pages/admin/content/` shows: reach, impressions, engagement, top posts
+* Admin dashboard at `src/pages/admin/content/` shows: reach, impressions, engagement, top posts, retention indicators
 * Analytics events emitted to central analytics backend (`content_post_published`, `content_metrics_ingested`) — see analytics.md
+* **Iteration loop is operational** — metrics are reviewed against per-brand targets on a defined cadence (see `measurement.md` §5), and diagnoses feed into the next workflow run. Re-uploads of revised videos are tracked as distinct posts.
 
 **Required DB tables:**
 
-* `content_posts` (platform, platform_post_id, published_at, content_type — RLS: admin-only)
+* `content_posts` (platform, platform_post_id, published_at, content_type, parent_post_id — RLS: admin-only; `parent_post_id` links re-uploads to their original for iteration tracking)
 * `content_metrics` (post_id, metric_name, value, captured_at — RLS: admin-only)
 
 **Gate to Phase 4:**
 
 * Daily sync runs 7 consecutive days without errors
-* Dashboard displays current KPIs
+* Dashboard displays current KPIs measured against the brand's `measurement.md` targets
 * Engagement volume justifies the cost of Phase 4 (project-specific threshold)
 
 ## Phase 4 — User Response Management
@@ -282,8 +321,9 @@ Conflict-resolution rule: if repo and n8n diverge, the **prompt source of truth 
 
 | Topic | Reference |
 |---|---|
-| Storytelling craft (hooks, structures, CTAs) | `.claude/ref/content-ops/storytelling.md` |
-| Visual contract (aspect ratios, safe zones, motion) | `.claude/ref/content-ops/visuals.md` |
+| Storytelling craft (topic discovery, hooks, structures, CTAs, platform character) | `.claude/ref/content-ops/storytelling.md` |
+| Visual contract (aspect ratios, safe zones, motion, design language, prompt craft) | `.claude/ref/content-ops/visuals.md` |
+| Performance measurement & iteration loop | `.claude/ref/content-ops/measurement.md` |
 | Event schema + analytics backend | `.claude/ref/growth/analytics.md` |
 | SEO of published content | `.claude/ref/growth/seo.md` |
 | Conversion funnel from content | `.claude/ref/growth/funnel.md` |
@@ -295,12 +335,14 @@ Conflict-resolution rule: if repo and n8n diverge, the **prompt source of truth 
 
 # 9 — Versioning & Status
 
-**Version:** 1.1
+**Version:** 1.3
 **Status:** ACTIVE
 **Initial scope:** 4 phases, Meta + TikTok, Personal / Development Mode apps, inbound-only response automation.
 
 **Changelog:**
 
+* **1.3 (2026-05-22):** Added §3.1 strategy.md Schema (channel mix, AI-disclosure policy, cross-posting rule — absorbed from dissolved `channel-strategy.md`). Phase 1 deliverables now include native-posting / AI-disclosure / hashtag rule enforcement. Removed cross-ref to `channel-strategy.md`. Updated measurement.md §6 → §5 reference (post-trim).
+* **1.2 (2026-05-22):** Phase 3 deliverables expanded with iteration-loop reference. Added `parent_post_id` to `content_posts` table.
 * **1.1 (2026-05-17):** Moved into `content-ops/` subfolder. Split per-repo `storytelling-guide.md` / `visuals-guide.md` into orchestrator-side patterns (`storytelling.md`, `visuals.md`) and per-repo brand instances (`brand-voice.md`, `brand-visuals.md`).
 * **1.0 (2026-05-16):** Initial scope.
 
