@@ -61,6 +61,60 @@
 
 ---
 
+### TMS Media
+
+- **Source label:** TMS Media (second course provider; full attribution TBD)
+- **Language of source:** English
+- **Domain:** Personal brand building, short-form video content strategy
+
+#### Documents ingested
+
+| # | Document | Date Ingested | Final Target Doc (post-trim) |
+|---|---|---|---|
+| T1 | `How_To_Post_-_Instagram_-_Transcript.txt` | 2026-05-22 | `storytelling.md` §8.2 + §10.1; `automation.md` §3.1 (most excluded as operator UI) |
+| T2 | `How_To_Post_-_TikTok_-_Transcript.txt` | 2026-05-22 | same as T1 |
+| T3 | `Making_Changes_To_Your_Videos_With_Analytics_-_Transcript.txt` | 2026-05-22 | `measurement.md` |
+| T4 | `This_Is_Going_To_Be_A_Journey_-_Transcript.txt` | 2026-05-22 | **excluded** (mindset prose) |
+| T5 | `The_One_Strategy_That_GUARANTEES_Success_-_Transcript.txt` | 2026-05-22 | `measurement.md` §6 Cadence (single-line reference only) |
+| T6 | `_LIVE_Building_a_Personal_Brand_-_Market_Research_And_Picking_A_Niche` | 2026-05-22 | `storytelling.md` §1 Topic Discovery |
+| T7 | `_LIVE_Building_a_Personal_Brand_-_Scripting_Shooting_and_Editing_A_Video` | 2026-05-22 | `visuals.md` §12.1 Shot List Schema (rest excluded as operator workflow) |
+| T8 | `_LIVE_Building_a_Personal_Brand_-_Editing_A_Video_From_Start_To_Finish` | 2026-05-22 | `visuals.md` §12.2 Export Specs (rest excluded) |
+| T9 | `_LIVE_Building_a_Personal_Brand_-_Posting_And_Iterating_A_Video` | 2026-05-22 | `measurement.md` §5 Iteration Loop + `storytelling.md` §2 (Foreshadowing hook) |
+| T10 | `_LIVE_Building_a_Personal_Brand_-_Getting_A_Brand_Deal_After_3_Posts` | 2026-05-22 | **excluded** (anecdote) |
+
+#### Excluded as not pattern-level (NOT migrated)
+
+- UI walkthroughs of Instagram/TikTok upload screens (button taps, toggle locations) — ephemeral, will change.
+- Specific editing decisions from the live DaVinci edit (which take to keep, which to cut) — demonstration, not principle.
+- The "Weights and Measures" niche case study itself (snake, tuna, Subway footlong, toilet paper) — illustrative instance, not pattern.
+- The brand-deal anecdote (one offer from a cheese-grater company).
+- Mindset / encouragement / "marathon not sprint" content (T4 fully, plus prose throughout other docs).
+- Operator workflow content from T7/T8 (scripting discipline, lighting>set, equipment baseline, ruthless cutting, subtitle workflow) — removed in the 2026-05-22 trim pass.
+
+#### Notable extractions (post-trim)
+
+- **Viral ratios** (T3, from analysis of 1000+ videos): 1 save per 3 likes, 1 share per 8 likes — in `measurement.md` §3.
+- **Foreshadowing hook** (T9): hook archetype in `storytelling.md` §2.
+- **Iteration loop discipline** (T9): "don't batch when iterating" — in `measurement.md` §5.2.
+- **Platform character bias** (T1/T2): IG=polish, TikTok=authenticity — in `storytelling.md` §8.2.
+- **Caption + Hashtag rules** (T1/T2): ≤ 2 sentences before line break, 3–5 hashtags — in `storytelling.md` §10.1.
+
+#### 2026-05-22 — Structural refactor
+
+`channel-strategy.md` was dissolved. Survivors distributed:
+
+| Content | New location |
+|---|---|
+| Caption & Hashtag rules | `storytelling.md` §10.1 |
+| Platform character bias (IG vs TikTok) | `storytelling.md` §8.2 |
+| Channel-mix + AI-disclosure schema | `automation.md` §3.1 |
+| Native-posting + hashtag-rule enforcement | `automation.md` Phase 1 deliverables |
+| Native-posting, pre-upload editing, cover/thumbnail, interaction settings, "what doesn't move the needle" | **removed** (operator workflow) |
+
+Same trim pass also removed: `measurement.md` §1 Mindset, §9 Brand-Deal anecdote; `visuals.md` §10.1 Core Principle prose, §10.7 Iteration Practice prose, §11.5 Tool-Stack names, §12.2/12.3/12.4/12.5/12.7 (operator-workflow content from live-action production).
+
+---
+
 ## Open Items / Future Sources
 
-(Add here as new course documents are ingested.)
+(Add here as new course documents are ingested. TMS Media batches 2+ pending.)
