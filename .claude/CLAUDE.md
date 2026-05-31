@@ -89,10 +89,27 @@ main       →  Vercel Production Deployment (auto on merge)
 - **Implementation:** Claude Code (this environment)
 - **Hosting:** Vercel (frontend) + Supabase Cloud (backend)
 - **feature branches** for all changes — never commit directly to main
-- **Parallel sessions:** when running multiple Claude Code sessions against
-  the same repo, use git worktrees instead of switching branches in a single
-  working copy. Run `/new-worktree <feature-name>` to spin up an isolated
-  worktree. Full reference: `@.claude/ref/workflow/worktrees.md`.
+
+### Parallel sessions — mandatory pattern
+
+The repo's main clone path (`<project>.richi.solutions/`) is reserved for
+`git pull`, `gh pr` browsing, deploys, and read-only inspection. **Never
+edit files there directly** — not even for a quick fix.
+
+Every coding session uses its own worktree:
+
+```
+/new-worktree <name>            # defaults to feat/<name>
+/new-worktree fix/<name>        # explicit prefix
+/new-worktree chore/<name>      # any of: feat, fix, chore, docs, refactor, test, hotfix, ops
+```
+
+This is non-negotiable. The cost (one `git worktree add` + a new VS Code
+window) is trivial; the cost of two sessions colliding in the same working
+tree — branch switched under you, untracked files drifting between themes,
+stash list chaos — is severe and has produced real damage in this org.
+
+Full reference: `@.claude/ref/workflow/worktrees.md`.
 
 ---
 

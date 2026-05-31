@@ -131,6 +131,38 @@ jobs:
               cp -r .claude/sync/. .
             fi
 
+            # Ensure session-local Claude state is ignored. The block below
+            # is owned by the orchestrator; it is appended once per repo and
+            # only re-touched if the marker line is missing. Repos may keep
+            # their own .gitignore entries above this block — they will not
+            # be overwritten.
+            GITIGNORE_MARKER="# >>> claude-session-state (managed by orchestrator) >>>"
+            GITIGNORE_END="# <<< claude-session-state <<<"
+            if ! grep -qF "$GITIGNORE_MARKER" .gitignore 2>/dev/null; then
+              # Ensure a trailing newline before appending, even if .gitignore
+              # is missing or has no trailing newline.
+              if [ -s .gitignore ] && [ "$(tail -c1 .gitignore | wc -l)" -eq 0 ]; then
+                echo "" >> .gitignore
+              fi
+              cat >> .gitignore <<GITIGNORE_BLOCK
+
+$GITIGNORE_MARKER
+# Per-Claude-Code-session locks. Each worktree has its own; never commit.
+.claude/scheduled_tasks.lock
+.claude/*.lock
+$GITIGNORE_END
+GITIGNORE_BLOCK
+              echo "Appended claude-session-state .gitignore block to $REPO_NAME"
+            fi
+
+            # Untrack any session lock files that may have been committed before
+            # this rule existed. The files themselves are kept on disk locally
+            # (--cached only), so active sessions are not disrupted.
+            if git ls-files --error-unmatch .claude/scheduled_tasks.lock >/dev/null 2>&1; then
+              git rm --cached -f .claude/scheduled_tasks.lock || true
+              echo "Untracked stale .claude/scheduled_tasks.lock in $REPO_NAME"
+            fi
+
             if [ -z "$(git status --porcelain)" ]; then
               echo "No changes needed for $REPO_NAME"
               SKIPPED=$((SKIPPED + 1))
