@@ -6,6 +6,36 @@ Load via `@.claude/ref/workflow/worktrees.md` when working on multi-session work
 
 ---
 
+## 0 — The Hard Rule
+
+**The main clone path (`<project>.richi.solutions/`) is the read-only baseline.**
+It is reserved for `git pull`, `gh pr` browsing, deploy commands, and quick
+inspection. **No coding session edits files there — ever.**
+
+Every coding session — even a five-minute hotfix — runs in its own worktree:
+
+```
+/new-worktree <feature-name>
+```
+
+The cost is trivial: one `git worktree add` + a new VS Code window. The
+cost of *not* doing this is severe, and the failure mode is silent:
+
+- Session A switches the branch in the main path
+- Session B (still attached to the same path) suddenly sees a different tree
+- Session B's untracked files now appear to belong to whatever branch is checked out
+- `git stash`-based recovery becomes ambiguous: which stash belongs to which session?
+
+This pattern has produced real damage in the field: lost untracked work,
+unrelated themes mixed into the same commit, branch ownership confusion
+across sessions. **It is non-negotiable for this organisation.**
+
+If you find yourself about to edit a file in the main path, stop and run
+`/new-worktree` first. If you are already mid-edit in the main path,
+abort, stash, switch to a worktree, and pop the stash there.
+
+---
+
 ## 1 — Why worktrees
 
 Every Claude Code session in VS Code attaches to the workspace's working directory. Git allows **only one branch checked out per working directory**. When multiple Claude Code sessions run in parallel against the same workspace:
