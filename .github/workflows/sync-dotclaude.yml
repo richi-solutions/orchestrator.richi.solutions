@@ -144,14 +144,17 @@ jobs:
               if [ -s .gitignore ] && [ "$(tail -c1 .gitignore | wc -l)" -eq 0 ]; then
                 echo "" >> .gitignore
               fi
-              cat >> .gitignore <<GITIGNORE_BLOCK
-
-$GITIGNORE_MARKER
-# Per-Claude-Code-session locks. Each worktree has its own; never commit.
-.claude/scheduled_tasks.lock
-.claude/*.lock
-$GITIGNORE_END
-GITIGNORE_BLOCK
+              # Avoid heredoc: the heredoc body would have to start at column 0
+              # for bash, but that breaks the YAML literal-block scalar indent
+              # for this `run:` step. Use grouped echos instead.
+              {
+                echo ""
+                echo "$GITIGNORE_MARKER"
+                echo "# Per-Claude-Code-session locks. Each worktree has its own; never commit."
+                echo ".claude/scheduled_tasks.lock"
+                echo ".claude/*.lock"
+                echo "$GITIGNORE_END"
+              } >> .gitignore
               echo "Appended claude-session-state .gitignore block to $REPO_NAME"
             fi
 
