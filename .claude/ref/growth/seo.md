@@ -186,6 +186,15 @@ src/lib/seo/sitemap-routes.ts  # Single source of truth for public routes
 public/sitemap.xml             # Generated artifact (checked into git)
 ```
 
+> **Do not hand-write the generator.** `scripts/generate-sitemap.mjs` is the
+> canonical, app-independent engine distributed from the orchestrator
+> (`.claude/sync/scripts/generate-sitemap.mjs`) — it lands in every repo via
+> sync and must not diverge per project. It is self-guarding: in a repo with
+> no `src/lib/seo/sitemap-routes.ts` it exits 0 as a no-op. The per-repo
+> pieces (`sitemap-routes.ts`, build wiring, CI drift step, `robots.txt`) are
+> scaffolded by the **`/setup-sitemap`** skill. Run that skill to enable
+> sitemap generation in a web project.
+
 The script MUST:
 
 1. Read `PUBLIC_ROUTES` from `src/lib/seo/sitemap-routes.ts` — a typed array of
@@ -194,7 +203,8 @@ The script MUST:
    completed public events, etc.) using a read-only anon key — gated behind
    an env flag, must degrade gracefully if Supabase is unreachable.
 3. Set `lastmod` to the current UTC date (`YYYY-MM-DD`).
-4. Use the production domain from `process.env.APP_URL` (fail if unset).
+4. Resolve the production domain from `process.env.APP_URL`, falling back to
+   `package.json` `homepage`; fail if neither is set (never guess a domain).
 5. Write `public/sitemap.xml` deterministically (stable ordering, no timestamps
    in milliseconds) so re-generation produces zero diff when no routes changed.
 
@@ -205,7 +215,8 @@ The `npm run build` script MUST invoke sitemap generation before `vite build`:
 ```json
 {
   "scripts": {
-    "build": "node scripts/generate-sitemap.mjs && vite build"
+    "sitemap:generate": "node scripts/generate-sitemap.mjs",
+    "build": "npm run sitemap:generate && vite build"
   }
 }
 ```
@@ -214,11 +225,19 @@ This ensures every Vercel production deployment ships with a fresh sitemap.
 
 ## 7.3 Drift Prevention (MANDATORY)
 
-CI MUST verify that the committed sitemap matches the generated one:
+CI MUST verify that the committed sitemap matches the generated one. Because
+`lastmod` is the current date, the diff MUST ignore `<lastmod>` lines — a
+plain `git diff --exit-code` would fail on every PR:
 
 ```yaml
-- run: npm run sitemap:generate
-- run: git diff --exit-code public/sitemap.xml
+- name: Sitemap drift check
+  run: |
+    npm run sitemap:generate
+    # Ignore lastmod so the check only fails on real route changes
+    if ! git diff --ignore-matching-lines='<lastmod>' --exit-code public/sitemap.xml; then
+      echo "::error::public/sitemap.xml is out of sync with src/lib/seo/sitemap-routes.ts. Run 'npm run sitemap:generate' and commit the result."
+      exit 1
+    fi
 ```
 
 If a developer adds or removes a public route without updating
