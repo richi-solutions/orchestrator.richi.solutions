@@ -1,0 +1,117 @@
+# Orchestrator: Sitemap coverage audit across all org web repos
+#
+# The seo.md §7 contract and the runtime-contract deployment gate require a
+# sitemap setup, but a repo with NO setup passes its own CI silently (the
+# drift check only runs once the script + step exist). This workflow is the
+# active cross-repo guard: it flags web repos that are missing the sitemap
+# enforcement chain so they can be fixed with the /setup-sitemap skill.
+#
+# Cheap to run (gh API content checks only — no Claude, no build matrix),
+# so it stays on a weekly schedule.
+#
+# Requires org secret: ORG_PAT (GitHub PAT with repo scope).
+
+name: Sitemap Coverage Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # Weekly Monday 06:00 UTC
+
+jobs:
+  audit:
+    name: Audit sitemap coverage
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Check coverage across web repos
+        env:
+          GH_TOKEN: ${{ secrets.ORG_PAT }}
+        run: |
+          set -euo pipefail
+
+          # All non-archived org repos
+          REPOS=$(gh repo list richi-solutions \
+            --no-archived --json name --limit 100 -q '.[].name')
+
+          exists() {
+            # exists <repo> <path> -> prints "1" if the file is present
+            gh api "repos/richi-solutions/$1/contents/$2" --silent 2>/dev/null \
+              && echo 1 || echo 0
+          }
+
+          MISSING=""
+          CHECKED=""
+
+          for repo in $REPOS; do
+            # Skip non-web surfaces
+            case "$repo" in
+              orchestrator.richi.solutions|.claude) continue ;;
+              *.app.richi.solutions) continue ;;   # mobile
+            esac
+
+            # A sitemap target is a Vite SPA — require a vite config
+            is_web=0
+            if [ "$(exists "$repo" vite.config.ts)" = "1" ] \
+               || [ "$(exists "$repo" vite.config.js)" = "1" ]; then
+              is_web=1
+            fi
+            [ "$is_web" = "0" ] && continue
+
+            CHECKED="$CHECKED $repo"
+
+            gen=$(exists "$repo" scripts/generate-sitemap.mjs)
+            routes=$(exists "$repo" src/lib/seo/sitemap-routes.ts)
+            robots=$(exists "$repo" public/robots.txt)
+
+            # CI drift step: fetch ci.yml and grep for sitemap wiring
+            ci="0"
+            if body=$(gh api "repos/richi-solutions/$repo/contents/.github/workflows/ci.yml" \
+                        -q '.content' 2>/dev/null); then
+              if echo "$body" | base64 -d 2>/dev/null | grep -qi "sitemap"; then
+                ci="1"
+              fi
+            fi
+
+            if [ "$gen$routes$robots$ci" != "1111" ]; then
+              gaps=""
+              [ "$gen" = "0" ]    && gaps="$gaps generator"
+              [ "$routes" = "0" ] && gaps="$gaps routes"
+              [ "$robots" = "0" ] && gaps="$gaps robots"
+              [ "$ci" = "0" ]     && gaps="$gaps ci-drift"
+              MISSING="$MISSING\n- \`$repo\` — missing:$gaps"
+            fi
+          done
+
+          echo "Checked web repos:$CHECKED"
+
+          if [ -z "$MISSING" ]; then
+            echo "All web repos have full sitemap coverage."
+            # Auto-close a stale tracking issue if one is open
+            num=$(gh issue list --repo richi-solutions/orchestrator.richi.solutions \
+                    --search "Sitemap coverage gaps in:title state:open" \
+                    --json number -q '.[0].number' 2>/dev/null || echo "")
+            if [ -n "$num" ]; then
+              gh issue close "$num" --repo richi-solutions/orchestrator.richi.solutions \
+                --comment "All web repos now have full sitemap coverage. Closing."
+            fi
+            exit 0
+          fi
+
+          BODY=$(printf "Web repos missing part of the sitemap enforcement chain (seo.md §7).\nFix each with the \`/setup-sitemap\` skill.\n%b\n" "$MISSING")
+          echo -e "$BODY"
+
+          # Idempotent tracking issue: update if open, else create
+          num=$(gh issue list --repo richi-solutions/orchestrator.richi.solutions \
+                  --search "Sitemap coverage gaps in:title state:open" \
+                  --json number -q '.[0].number' 2>/dev/null || echo "")
+          if [ -n "$num" ]; then
+            gh issue edit "$num" --repo richi-solutions/orchestrator.richi.solutions \
+              --body "$BODY"
+          else
+            gh issue create --repo richi-solutions/orchestrator.richi.solutions \
+              --title "Sitemap coverage gaps" \
+              --body "$BODY" \
+              --label "seo,automated"
+          fi
