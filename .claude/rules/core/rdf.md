@@ -128,8 +128,10 @@ Both repos share:
 ## 01 — Core Invariants (Never Break These)
 
 - **Contracts as Law** – All APIs/events typed and validated via Zod/JSON Schema or OpenAPI
-- **Ports & Adapters** – Isolate external I/O behind interfaces
+- **Ports & Adapters** – Isolate external I/O behind interfaces. **External clients (Supabase, Stripe, HTTP) are imported only inside `adapters/`** — UI, pages, hooks and domain call an adapter, never the client directly. Enforced by `no-restricted-imports` (see canonical `eslint.config.js`).
 - **Domain Purity** – Business logic has no side effects or I/O
+- **Type Safety** – No type-assertion escapes (`as any`, `as never`, `as unknown as`) and no `@ts-ignore` in app code. Generated types (e.g. Supabase `types.ts`) are the source of truth and **must be regenerated after every migration** — stale types are the root cause of cast debt. Enforced by lint (`no-explicit-any: error`, `no-restricted-syntax` on banned assertions) and the types-drift CI gate.
+- **Bounded Files** – No source file over ~400 LOC; split god files into cohesive modules. Enforced by `max-lines`.
 - **Versioned Events** – Track app events via stable schemas, no PII
 - **Typed Config Loader** – One validated entry point for all environment vars
 - **Feature Flags Facade** – Wrap experimentation logic (`flags.get('x')`)
@@ -139,6 +141,10 @@ Both repos share:
 - **Platform-Agnostic Contracts** – Schemas work across Web, Mobile, Backend
 
 > These invariants apply from the first commit. No exceptions, no phase gating.
+> **Gates over prose:** invariants that can be linted MUST be linted. The
+> canonical `eslint.config.js`, `tsconfig`, and CI checks distributed via
+> `.claude/sync/` are the enforcement; this list is the rationale. A rule that
+> only lives in this document and not in a gate is an aspiration, not a standard.
 
 ---
 
@@ -818,7 +824,7 @@ Phases are structure-driven: move to the next phase when all gates of the curren
 | **Performance** | `vite build` passes | Core Web Vitals monitored | + Lighthouse CI enforced |
 | **Documentation** | README | + ADRs for key decisions | + runbooks + API docs |
 | **CI/CD** | lint, typecheck, build, test | + E2E + commitlint + security scan | + Lighthouse CI + CodeQL |
-| **Architecture** | Feature folders, Zod contracts | Ports & Adapters, error envelope | Circuit breakers, cache layer |
+| **Architecture** | Feature folders, Zod contracts, **lint gates green** (no-explicit-any/banned-assertions/boundary = error), TanStack Query for all server state | Ports & Adapters with real port interfaces, error envelope, 0 client imports outside `adapters/`, no file > 400 LOC | Circuit breakers, cache layer |
 
 ### Phase Transition Rules
 

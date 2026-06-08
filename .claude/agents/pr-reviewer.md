@@ -26,7 +26,15 @@ Analyze every changed file across these dimensions. Only flag issues that are re
 ### 1. Type Safety
 - Missing or incorrect TypeScript types
 - `any` usage where a proper type exists
+- **Type-assertion escapes — flag every `as any`, `as never`, `as unknown as`, and `@ts-ignore` in app code as a blocking issue.** `as never` on a Supabase `.from()`/`.rpc()` call almost always means the generated `types.ts` is stale: the fix is `supabase gen types`, not a cast.
+- New migration in this PR but `src/integrations/supabase/types.ts` not regenerated → flag (it will leave casts behind)
 - Zod schema mismatches with TypeScript interfaces
+
+### 1b. Architecture Boundaries
+- Direct import of the Supabase client (`integrations/supabase/client` or `lib/supabase`) outside `src/adapters/**` → blocking. UI/pages/hooks/domain must call an adapter.
+- Business logic with I/O placed in `domain/` (domain must stay pure)
+- Manual `useEffect` + `useState` data fetching in a page/component instead of a TanStack Query hook wrapping an adapter
+- Source file over ~400 LOC (excluding generated `types.ts`) → flag for decomposition
 
 ### 2. Security
 - Hardcoded secrets or API keys

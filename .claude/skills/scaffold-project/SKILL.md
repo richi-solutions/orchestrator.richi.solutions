@@ -118,6 +118,70 @@ Create `vercel.json`:
 }
 ```
 
+## Step 7.5: Quality Gates (CI + strict TypeScript)
+
+The architecture/type-safety gates from `rdf.md` §01/§13 must be wired in from
+the first commit — retrofitting them later means fighting accumulated debt.
+
+**Strict tsconfig.** In `tsconfig.app.json` (and any other app tsconfig), set:
+```jsonc
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  }
+}
+```
+
+**Canonical ESLint config.** The strict, sync-distributed `eslint.config.js`
+arrives in Step 11 (`cp -r .claude/sync/. .`) and overwrites the Vite default.
+It uses only the plugins the Vite `react-ts` template already installs — no
+extra devDependency needed. It enforces: `no-explicit-any` (error), banned
+`as any`/`as never`/`as unknown as` (error), `ban-ts-comment` (error), the
+adapter-boundary import rule (error), and `max-lines` (warn). For a greenfield
+repo you may immediately tighten `max-lines` to error in the local override.
+
+**Main CI workflow.** Create `.github/workflows/ci.yml` (the sync folder ships
+commitlint/security/types-drift as separate additive workflows, but the main
+quality pipeline is per-repo so it is not clobbered):
+```yaml
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - run: npm run lint          # type-safety + boundary gates block here
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run test
+```
+Add the matching scripts to `package.json` (`lint`, `typecheck`, `test`).
+
+**Mandatory server-state layer.** TanStack Query (installed in Step 3) is the
+*only* data-fetching path. Wrap the app in a `QueryClientProvider` and fetch via
+query hooks that call adapters — never manual `useEffect` + `useState` fetching:
+```typescript
+// src/main.tsx
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient();
+// <QueryClientProvider client={queryClient}> ... </QueryClientProvider>
+```
+
+**Adapter boundary.** Only `src/adapters/**` imports the Supabase client
+(`src/lib/supabase.ts`). Pages/components/hooks/domain call an adapter. The
+ESLint `no-restricted-imports` rule enforces this; do not weaken it.
+
 ## Step 8: Supabase Init
 
 ```bash

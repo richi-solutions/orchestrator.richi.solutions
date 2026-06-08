@@ -1,0 +1,55 @@
+# Types-drift gate — distributed via orchestrator (.claude/sync).
+#
+# Catches the root cause behind the type-cast debt: migrations added without
+# regenerating the Supabase TypeScript types, which forces `as never`/`as any`
+# casts at every new table/RPC call site.
+#
+# This is a pure-git check (no Supabase access, no secrets, no DB) so it runs
+# safely in every repo: it only fails a PR that touches supabase/migrations/**
+# without also updating the generated types file. It is a standalone workflow
+# and does NOT replace or modify a repo's existing ci.yml.
+name: Types Drift
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  types-drift:
+    name: Migrations imply regenerated types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check migrations vs generated types
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          TYPES_FILE="src/integrations/supabase/types.ts"
+
+          # Guard: repos without migrations or without a generated types file
+          # are out of scope — pass silently.
+          if [ ! -d "supabase/migrations" ] || [ ! -f "$TYPES_FILE" ]; then
+            echo "No supabase/migrations or generated types file — skipping."
+            exit 0
+          fi
+
+          CHANGED=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+
+          MIGRATIONS_CHANGED=$(echo "$CHANGED" | grep -E '^supabase/migrations/.*\.sql$' || true)
+          TYPES_CHANGED=$(echo "$CHANGED" | grep -F "$TYPES_FILE" || true)
+
+          if [ -n "$MIGRATIONS_CHANGED" ] && [ -z "$TYPES_CHANGED" ]; then
+            echo "::error::This PR changes supabase/migrations/ but does not update $TYPES_FILE."
+            echo "Regenerate the types so new tables/RPCs are typed (no 'as never' casts):"
+            echo "  supabase gen types typescript --linked > $TYPES_FILE"
+            echo ""
+            echo "Changed migrations:"
+            echo "$MIGRATIONS_CHANGED" | sed 's/^/  - /'
+            exit 1
+          fi
+
+          echo "Types-drift check passed."
