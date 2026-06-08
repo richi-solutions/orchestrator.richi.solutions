@@ -82,6 +82,21 @@ Check if the migration breaks existing code:
 - If dropping: verify no references exist
 - If adding NOT NULL without default: will fail on existing rows
 
+### 6. Regenerate Generated Types (MANDATORY)
+
+Any migration that adds or changes a table, column, view, enum, or RPC MUST be
+accompanied by a regenerated types file in the same change:
+
+```bash
+supabase gen types typescript --linked > src/integrations/supabase/types.ts
+```
+
+Skipping this is the root cause of `as never`/`as any` cast debt: when a new
+table or RPC is missing from `types.ts`, TypeScript infers `never` and callers
+cast it away. The `Types Drift` CI gate fails any PR that changes
+`supabase/migrations/` without updating `src/integrations/supabase/types.ts`.
+State explicitly in the output that types were regenerated.
+
 ## Output
 
 ```

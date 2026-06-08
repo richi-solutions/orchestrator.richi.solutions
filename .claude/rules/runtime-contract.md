@@ -13,6 +13,8 @@ Full reference: `@rules/ref/` (load on demand)
 | Contracts as Law | All API boundaries schema-validated (Zod). Versioned schemas required. |
 | Error Envelope | All operations return `{ ok, data? }` or `{ ok: false, error: { code, message }, traceId }`. No raw exceptions to UI. |
 | Domain Purity | Business logic has no I/O. External I/O behind ports/adapters. |
+| Type Safety | No `as any` / `as never` / `as unknown as` / `@ts-ignore` in app code. Generated types regenerated after every migration (types-drift gate). Lint passes with type-safety rules at error. |
+| Adapter Boundary | External clients (Supabase/Stripe/HTTP) imported only inside `adapters/`. No direct client imports in UI/pages/hooks/domain. |
 | Typed Config | All env vars loaded + validated on startup. Fail fast on invalid config. Secrets never in repo. |
 | Logger Facade | Unified info/warn/error interface. traceId in all logs. No uncontrolled console.log in production. |
 | RLS Enforced | Row-level security on all user tables. Users never access other users' data. |
@@ -43,6 +45,10 @@ Block deployment until all pass:
 - [ ] Vercel project linked and environment variables configured
 - [ ] Supabase Cloud project linked (own project, not managed by third party)
 - [ ] `vite build` passes without errors
+- [ ] `npm run lint` passes — type-safety rules (no-explicit-any, banned `as any`/`as never`/`as unknown as`, ban-ts-comment) and the adapter-boundary rule (`no-restricted-imports`) report **zero errors**
+- [ ] `npm run typecheck` passes
+- [ ] Generated Supabase `types.ts` is not stale — types-drift CI gate green (any migration change accompanied by a regenerated types file)
+- [ ] No source file exceeds ~400 LOC (excluding generated `types.ts`)
 - [ ] Sitemap generation script present and wired into `npm run build` (`scripts/generate-sitemap.mjs` — see `ref/growth/seo.md` §7)
 - [ ] CI verifies `public/sitemap.xml` matches generator output (drift check)
 - [ ] `robots.txt` references the sitemap and disallows non-indexable route categories

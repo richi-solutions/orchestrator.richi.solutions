@@ -23,6 +23,7 @@ Evaluate the code on these dimensions. Only flag issues that are real — do not
 3. **Performance** — Obvious inefficiencies: O(n²) when O(n) is trivial, redundant iterations, unnecessary allocations.
 4. **Security** — Injection risks, unsanitized input, hardcoded secrets, unsafe deserialization.
 5. **Error handling** — Missing error handling at system boundaries (external APIs, user input, file I/O). Do NOT flag missing error handling for internal function calls.
+6. **Type safety** — Flag every type-assertion escape: `as any`, `as never`, `as unknown as`, and `@ts-ignore`/`@ts-expect-error`. These hide real type errors; they are blocking in app code (tests excepted). A proper type or a regenerated generated-types file is the fix.
 
 ## Output Format
 
